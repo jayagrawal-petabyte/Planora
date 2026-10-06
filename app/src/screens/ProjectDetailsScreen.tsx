@@ -187,7 +187,7 @@ export const ProjectDetailsScreen = ({ route }: any) => {
             <Text style={styles.btnActionText}>{item.status === 'COMPLETED' ? 'Mark Pending' : 'Complete'}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={[styles.btn, {backgroundColor: '#eee'}]} onPress={() => startEdit(item)}>
-            <Text style={[styles.btnActionText, {color: '#03175b'}]}>Edit</Text>
+            <Text style={[styles.btnActionText, {color: '#1a3626'}]}>Edit</Text>
           </TouchableOpacity>
           <TouchableOpacity style={[styles.btn, styles.btnDelete]} onPress={() => deleteTask(item.id)}>
             <Text style={styles.btnActionText}>Delete</Text>
@@ -246,7 +246,7 @@ export const ProjectDetailsScreen = ({ route }: any) => {
       {error ? <Text style={styles.error}>{error}</Text> : null}
       
       {loading ? (
-        <ActivityIndicator size="large" color="#0b4cad" style={{ marginTop: 20 }} />
+        <ActivityIndicator size="large" color="#1a3626" style={{ marginTop: 20 }} />
       ) : (
         <FlatList
           data={tasks}
@@ -262,14 +262,14 @@ export const ProjectDetailsScreen = ({ route }: any) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f8f9fb' },
+  container: { flex: 1, backgroundColor: '#f7f4ec' },
   searchBar: { flexDirection: 'row', padding: 10, backgroundColor: 'white', alignItems: 'center' },
   searchInput: { flex: 1, borderWidth: 1, borderColor: '#ccc', borderRadius: 5, padding: 10, marginRight: 10 },
-  addBtn: { backgroundColor: '#0b4cad', paddingVertical: 10, paddingHorizontal: 15, borderRadius: 5 },
+  addBtn: { backgroundColor: '#1a3626', paddingVertical: 10, paddingHorizontal: 15, borderRadius: 5 },
   addBtnText: { color: 'white', fontWeight: 'bold' },
   filterBadge: { padding: 6, backgroundColor: '#eee', borderRadius: 4, justifyContent: 'center' },
-  filterBadgeActive: { backgroundColor: '#0b4cad' },
-  filterBadgeText: { fontSize: 12, color: '#03175b' },
+  filterBadgeActive: { backgroundColor: '#1a3626' },
+  filterBadgeText: { fontSize: 12, color: '#1a3626' },
   createForm: { backgroundColor: 'white', padding: 15, borderBottomWidth: 1, borderBottomColor: '#eee' },
   input: { borderWidth: 1, borderColor: '#ccc', borderRadius: 5, padding: 10, marginBottom: 10 },
   submitBtn: { backgroundColor: '#28a745', padding: 12, borderRadius: 5, alignItems: 'center' },
@@ -280,7 +280,7 @@ const styles = StyleSheet.create({
   cardTitle: { fontSize: 16, fontWeight: 'bold', color: '#2c3e50', flex: 1 },
   completedText: { textDecorationLine: 'line-through', color: '#95a5a6' },
   badge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 4 },
-  priorityLOW: { backgroundColor: '#00aff2' },
+  priorityLOW: { backgroundColor: '#2a5a3f' },
   priorityMEDIUM: { backgroundColor: '#f39c12' },
   priorityHIGH: { backgroundColor: '#e74c3c' },
   badgeText: { fontSize: 10, color: 'white', fontWeight: 'bold' },
@@ -291,10 +291,10 @@ const styles = StyleSheet.create({
   btnPending: { backgroundColor: '#f1c40f' },
   btnDelete: { backgroundColor: '#e74c3c' },
   btnActionText: { color: 'white', fontSize: 10, fontWeight: 'bold' },
-  btnPrimary: { backgroundColor: '#0b4cad', padding: 10, borderRadius: 4, flex: 1, marginRight: 5, alignItems: 'center' },
+  btnPrimary: { backgroundColor: '#1a3626', padding: 10, borderRadius: 4, flex: 1, marginRight: 5, alignItems: 'center' },
   btnSecondary: { backgroundColor: '#eee', padding: 10, borderRadius: 4, flex: 1, marginLeft: 5, alignItems: 'center' },
   btnText: { color: 'white', fontWeight: 'bold' },
-  btnTextSecondary: { color: '#03175b', fontWeight: 'bold' },
+  btnTextSecondary: { color: '#1a3626', fontWeight: 'bold' },
   error: { color: 'red', padding: 20, textAlign: 'center' },
   empty: { textAlign: 'center', marginTop: 50, color: '#999', fontSize: 14 }
 });

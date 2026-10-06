@@ -18,8 +18,6 @@ export const Landing = () => {
               <a href="https://ismobiophotonics.com/" target="_blank" rel="noreferrer" className="contact-link">
                 https://ismobiophotonics.com/
               </a>
-              <p>Email: <a href="mailto:ikram@ismobiophotonics.com">ikram@ismobiophotonics.com</a></p>
-              <p>Email: <a href="mailto:admin@ismobiophotonics.com">admin@ismobiophotonics.com</a></p>
             </div>
           </div>
         </div>
@@ -53,22 +51,32 @@ export const Landing = () => {
 
         <div className="hero-graphic">
           <div className="graphic-item item-intern">
-            <span className="graphic-label" style={{background: '#ffe8cc', color: '#d35400'}}>Intern</span>
+            <span className="graphic-label" style={{background: '#ffe8cc', color: '#d35400'}}>Lead</span>
+            <div className="avatar-bg-circle bg-circle-orange"></div>
             <div className="avatar-circle"></div>
             <div className="avatar-body"></div>
           </div>
           
           <div className="graphic-item item-project">
             <span className="graphic-label" style={{background: '#e0e7ff', color: '#3730a3'}}>Project</span>
-            <div className="avatar-circle center-circle"></div>
-            <div className="avatar-body center-body"></div>
+            <div className="avatar-bg-circle bg-circle-green"></div>
             <div className="desk">
-               <div className="screen"></div>
+               <div className="screen">
+                 <div className="note-line" style={{width: '30%', background: '#d1fae5'}}></div>
+                 <div className="note-line" style={{width: '60%', background: '#d1fae5'}}></div>
+                 <div className="note-line" style={{width: '40%', background: '#ffe8cc'}}></div>
+                 <div className="note-line" style={{width: '70%', background: '#ffe8cc'}}></div>
+                 <div className="note-line" style={{width: '25%', background: '#e0e7ff'}}></div>
+                 <div className="note-line" style={{width: '50%', background: '#e0e7ff'}}></div>
+               </div>
             </div>
+            <div className="avatar-circle center-circle" style={{position: 'relative', zIndex: 10}}></div>
+            <div className="avatar-body center-body" style={{position: 'relative', zIndex: 10}}></div>
           </div>
           
           <div className="graphic-item item-task">
             <span className="graphic-label" style={{background: '#d1fae5', color: '#065f46'}}>Task</span>
+            <div className="avatar-bg-circle bg-circle-blue"></div>
             <div className="avatar-circle"></div>
             <div className="avatar-body"></div>
           </div>

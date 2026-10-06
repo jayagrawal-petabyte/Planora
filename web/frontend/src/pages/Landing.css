@@ -172,6 +172,20 @@
   margin-bottom: 1rem;
 }
 
+.avatar-bg-circle {
+  position: absolute;
+  top: 15px;
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  z-index: -1;
+  opacity: 0.4;
+}
+
+.bg-circle-orange { background-color: #f6e5c0; width: 60px; height: 60px; top: 18px; }
+.bg-circle-green { background-color: #d1fae5; top: 12px; width: 75px; height: 75px; }
+.bg-circle-blue { background-color: #e0e7ff; width: 60px; height: 60px; top: 18px; }
+
 .avatar-circle {
   width: 40px;
   height: 40px;
@@ -245,10 +259,20 @@
   bottom: 10px;
   width: 150px;
   height: 90px;
-  background-color: white;
+  background-color: rgba(255, 255, 255, 0.95);
   border: 2px solid #e2dfd5;
   border-radius: 8px;
   z-index: 5;
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  gap: 6px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+.note-line {
+  height: 8px;
+  border-radius: 4px;
 }
 
 /* Modal styles */

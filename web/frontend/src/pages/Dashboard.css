@@ -10,7 +10,7 @@
   color: var(--text-h);
   display: flex;
   flex-direction: column;
-  box-shadow: 2px 0 10px rgba(11, 76, 173, 0.05);
+  box-shadow: 2px 0 10px rgba(26, 54, 38, 0.05);
   border-right: 1px solid var(--border);
   z-index: 10;
 }
@@ -95,7 +95,7 @@
 
 .stat-card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 8px 15px rgba(11, 76, 173, 0.1);
+  box-shadow: 0 8px 15px rgba(26, 54, 38, 0.1);
 }
 
 .stat-card h3 {

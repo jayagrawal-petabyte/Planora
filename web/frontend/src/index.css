@@ -1,20 +1,20 @@
-@import url('https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Open+Sans:wght@400;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,700;1,800&family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
-  --text: #32373c;
-  --text-h: #03175b;
-  --bg: #f8f9fb;
-  --border: #cccccc;
-  --code-bg: #eaeef3;
-  --accent: #0b4cad;
-  --accent-secondary: #00aff2;
-  --accent-bg: rgba(11, 76, 173, 0.1);
-  --accent-border: rgba(11, 76, 173, 0.5);
-  --social-bg: rgba(234, 238, 243, 0.5);
-  --shadow: rgba(0, 0, 0, 0.08) 0 4px 12px;
+  --text: #1a3626;
+  --text-h: #1a3626;
+  --bg: #f7f4ec;
+  --border: rgba(26, 54, 38, 0.2);
+  --code-bg: rgba(26, 54, 38, 0.05);
+  --accent: #1a3626;
+  --accent-secondary: #2a5a3f;
+  --accent-bg: rgba(26, 54, 38, 0.1);
+  --accent-border: rgba(26, 54, 38, 0.5);
+  --social-bg: rgba(247, 244, 236, 0.5);
+  --shadow: rgba(26, 54, 38, 0.08) 0 4px 12px;
 
-  --sans: 'Open Sans', Arial, sans-serif;
-  --heading: 'Barlow', Arial, sans-serif;
+  --sans: 'Inter', Arial, sans-serif;
+  --heading: 'Playfair Display', serif;
   --mono: ui-monospace, Consolas, monospace;
 
   font: 16px/150% var(--sans);
@@ -75,7 +75,7 @@ a:hover {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--accent) 0%, #0e3791 100%);
+  background: linear-gradient(135deg, var(--accent) 0%, #102619 100%);
   color: white;
   border: none;
   padding: 0.8rem 1.5rem;
@@ -84,13 +84,13 @@ a:hover {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 6px rgba(11, 76, 173, 0.2);
+  box-shadow: 0 4px 6px rgba(26, 54, 38, 0.2);
 }
 
 .btn-primary:hover {
   background: linear-gradient(135deg, var(--accent-secondary) 0%, var(--accent) 100%);
   transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(0, 175, 242, 0.3);
+  box-shadow: 0 6px 12px rgba(26, 54, 38, 0.3);
 }
 
 .btn-secondary {
