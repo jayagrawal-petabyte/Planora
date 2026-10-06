@@ -1,5 +1,6 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, RefreshControl, TouchableOpacity } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 
@@ -33,9 +34,11 @@ export const DashboardScreen = ({ navigation }: any) => {
     }
   };
 
-  useEffect(() => {
-    fetchStats();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      fetchStats();
+    }, [])
+  );
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
