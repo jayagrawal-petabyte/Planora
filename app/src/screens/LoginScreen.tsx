@@ -30,37 +30,51 @@ export const LoginScreen = ({ navigation }: any) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Welcome Back</Text>
+      <View style={styles.topSection}>
+        <View style={styles.artCircle} />
+        <Text style={styles.logoText}>PLANORA</Text>
+        <Text style={styles.subtitle}>Empower your teamwork</Text>
+      </View>
       
-      <View style={styles.form}>
-        <Text style={styles.label}>Email</Text>
-        <TextInput
-          style={styles.input}
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
-        />
+      <View style={styles.bottomSection}>
+        <Text style={styles.title}>Welcome to Planora</Text>
         
-        <Text style={styles.label}>Password</Text>
-        <TextInput
-          style={styles.input}
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-        />
+        <View style={styles.form}>
+          <Text style={styles.label}>Email</Text>
+          <TextInput
+            style={styles.input}
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+          
+          <Text style={styles.label}>Password</Text>
+          <TextInput
+            style={styles.input}
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+          />
 
-        <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
-          {loading ? (
-            <ActivityIndicator color="white" />
-          ) : (
-            <Text style={styles.buttonText}>Login</Text>
-          )}
-        </TouchableOpacity>
+          <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
+            {loading ? (
+              <ActivityIndicator color="white" />
+            ) : (
+              <Text style={styles.buttonText}>Sign in</Text>
+            )}
+          </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => navigation.navigate('Register')} style={styles.linkContainer}>
-          <Text style={styles.linkText}>Don't have an account? Register</Text>
-        </TouchableOpacity>
+          <View style={styles.dividerContainer}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>or</Text>
+            <View style={styles.dividerLine} />
+          </View>
+
+          <TouchableOpacity onPress={() => navigation.navigate('Register')} style={styles.linkContainer}>
+            <Text style={styles.linkText}>New to Planora? Create Account</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );
@@ -69,61 +83,106 @@ export const LoginScreen = ({ navigation }: any) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    padding: 30,
-    backgroundColor: '#f7f4ec',
+    backgroundColor: '#fff',
   },
-  title: {
-    fontSize: 36,
+  topSection: {
+    flex: 0.35,
+    backgroundColor: '#9cbdae',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
+    padding: 20,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  artCircle: {
+    position: 'absolute',
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    top: -20,
+    left: -30,
+  },
+  logoText: {
+    fontSize: 28,
     fontWeight: 'bold',
-    marginBottom: 40,
-    textAlign: 'left',
-    color: '#1a3626',
+    color: '#fff',
+    letterSpacing: 2,
     fontFamily: 'serif',
     fontStyle: 'italic',
+  },
+  subtitle: {
+    color: '#fff',
+    marginTop: 10,
+    fontSize: 14,
+    opacity: 0.9,
+  },
+  bottomSection: {
+    flex: 0.65,
+    padding: 30,
+    justifyContent: 'center',
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginBottom: 30,
+    textAlign: 'center',
+    color: '#666',
   },
   form: {
     backgroundColor: 'transparent',
   },
   label: {
-    fontSize: 18,
-    color: '#1a3626',
-    marginBottom: 8,
-    fontFamily: 'serif',
-    fontStyle: 'italic',
+    fontSize: 14,
+    color: '#aaa',
+    marginBottom: 5,
     fontWeight: 'bold',
   },
   input: {
-    borderWidth: 1,
-    borderColor: '#1a3626',
-    borderRadius: 8,
-    padding: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd',
+    paddingVertical: 10,
     marginBottom: 20,
     fontSize: 16,
-    backgroundColor: 'white',
+    color: '#333',
   },
   button: {
-    backgroundColor: '#1a3626',
+    backgroundColor: '#666',
     padding: 15,
-    borderRadius: 8,
+    borderRadius: 25,
     alignItems: 'center',
-    marginTop: 20,
-    width: '50%',
+    marginTop: 15,
+    width: '60%',
+    alignSelf: 'center',
   },
   buttonText: {
     color: 'white',
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
-    fontFamily: 'serif',
-    fontStyle: 'italic',
+  },
+  dividerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 30,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#eee',
+  },
+  dividerText: {
+    marginHorizontal: 10,
+    color: '#ccc',
+    fontSize: 14,
   },
   linkContainer: {
-    marginTop: 40,
-    alignItems: 'flex-start',
+    alignItems: 'center',
   },
   linkText: {
-    color: '#1a3626',
-    fontSize: 16,
-    textDecorationLine: 'underline',
+    color: '#9cbdae',
+    fontSize: 15,
+    fontWeight: 'bold',
   },
 });

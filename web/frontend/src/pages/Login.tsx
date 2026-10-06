@@ -31,10 +31,38 @@ export const Login = () => {
   };
 
   return (
-    <div className="auth-container">
-      <div className="auth-wrapper">
+    <div className="auth-container split-layout">
+      <div className="auth-left">
+        <div className="css-art-container">
+          <div className="art-circle-lg"></div>
+          <div className="art-circle-sm"></div>
+          <div className="art-card main-card">
+             <div className="art-line short"></div>
+             <div className="art-line long"></div>
+             <div className="art-line medium"></div>
+          </div>
+          <div className="art-card side-card">
+             <div className="art-line medium"></div>
+             <div className="art-line short"></div>
+          </div>
+          <div className="art-floating-bubble bubble-1"></div>
+          <div className="art-floating-bubble bubble-2"></div>
+        </div>
+        <div className="auth-left-text">
+          <h3>Empower your teamwork</h3>
+          <p>Seamlessly organize projects, track tasks, and collaborate with your entire team in one unified platform.</p>
+          <div className="carousel-dots">
+            <span className="dot active"></span>
+            <span className="dot"></span>
+            <span className="dot"></span>
+          </div>
+        </div>
+      </div>
+      
+      <div className="auth-right">
         <div className="auth-box">
-          <h2>Welcome Back</h2>
+          <div className="auth-logo">PLANORA</div>
+          <h2>Welcome to Planora</h2>
           {error && <div className="error-message">{error}</div>}
           <form onSubmit={handleSubmit}>
             <div className="form-group">
@@ -56,15 +84,17 @@ export const Login = () => {
               />
             </div>
             <button type="submit" disabled={loading} className="auth-button">
-              {loading ? 'Logging in...' : 'Login'}
+              {loading ? 'Logging in...' : 'Sign in'}
             </button>
           </form>
+          
+          <div className="auth-divider">
+             <span>or</span>
+          </div>
+          
           <p className="auth-links">
-            Don't have an account? <Link to="/register">Register</Link>
+            New to Planora? <Link to="/register">Create Account</Link>
           </p>
-        </div>
-        <div className="auth-illustration">
-          <img src="/src/assets/login-ill-3.png" alt="Login Illustration" />
         </div>
       </div>
     </div>

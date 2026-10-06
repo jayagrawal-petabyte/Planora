@@ -1,118 +1,146 @@
-.auth-container {
+/* Split Layout Authentication Pages */
+.auth-container.split-layout {
   display: flex;
-  justify-content: center;
-  align-items: center;
   min-height: 100vh;
-  background: var(--bg);
-}
-
-.auth-wrapper {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6rem;
-  max-width: 1200px;
   width: 100%;
-  padding: 2rem;
 }
 
-.auth-illustration {
+.auth-left {
   display: none;
-  flex: 1;
-  max-width: 500px;
 }
 
 @media (min-width: 768px) {
-  .auth-illustration {
-    display: block;
+  .auth-left {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 50%;
+    background-color: #9cbdae;
+    padding: 4rem;
+    color: white;
+    position: relative;
+    overflow: hidden;
   }
 }
 
-.auth-illustration img {
+.auth-right {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   width: 100%;
-  height: auto;
-  object-fit: contain;
+  background-color: white;
+}
+
+@media (min-width: 768px) {
+  .auth-right {
+    width: 50%;
+  }
 }
 
 .auth-box {
-  background: transparent;
-  padding: 2rem;
   width: 100%;
-  max-width: 450px;
-  flex: 1;
+  max-width: 400px;
+  padding: 2rem;
+}
+
+.auth-logo {
+  font-family: 'Playfair Display', serif;
+  font-size: 2.2rem;
+  font-style: italic;
+  font-weight: 800;
+  color: #1a3626;
+  text-align: center;
+  margin-bottom: 1rem;
 }
 
 .auth-box h2 {
-  text-align: left;
-  margin-bottom: 2rem;
-  color: #1a3626;
-  font-family: 'Playfair Display', serif;
-  font-style: italic;
-  font-weight: 800;
-  font-size: 2.8rem;
-  letter-spacing: 1px;
+  text-align: center;
+  margin-bottom: 3rem;
+  color: #888;
+  font-family: var(--sans);
+  font-size: 1.1rem;
+  font-weight: 400;
 }
 
 .form-group {
-  margin-bottom: 2rem;
-  text-align: left;
+  margin-bottom: 1.5rem;
 }
 
 .form-group label {
   display: block;
   margin-bottom: 0.5rem;
-  font-weight: 700;
-  color: #1a3626;
-  font-family: 'Playfair Display', serif;
-  font-style: italic;
-  font-size: 1.4rem;
-  letter-spacing: 1px;
+  font-weight: 500;
+  color: #aaa;
+  font-size: 0.85rem;
 }
 
-.form-group input {
+.form-group input, .form-group select {
   width: 100%;
-  padding: 1rem;
-  border: 1px solid #1a3626;
-  border-radius: 8px;
-  font-size: 1.1rem;
+  padding: 0.5rem 0;
+  border: none;
+  border-bottom: 1px solid #ddd;
+  font-size: 1rem;
   transition: border-color 0.3s ease;
-  font-family: var(--sans);
-  background: white;
+  background: transparent;
+  color: #333;
 }
 
-.form-group input:focus {
+.form-group input:focus, .form-group select:focus {
   outline: none;
-  border-color: #2a5a3f;
-  box-shadow: 0 0 0 3px rgba(26, 54, 38, 0.1);
+  border-bottom: 1px solid #1a3626;
 }
 
 .auth-button {
-  width: auto;
-  min-width: 140px;
-  margin-top: 1rem;
-  padding: 0.8rem 2rem;
-  border-radius: 8px;
-  background: #1a3626;
+  width: 100%;
+  max-width: 200px;
+  display: block;
+  margin: 2rem auto 0;
+  padding: 0.8rem;
+  border-radius: 25px;
+  background: #666;
   color: white;
-  font-family: 'Playfair Display', serif;
-  font-style: italic;
-  font-size: 1.3rem;
-  font-weight: 700;
-  display: inline-block;
+  font-size: 1rem;
+  font-weight: 600;
   border: none;
   cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.auth-button:hover {
+  background: #1a3626;
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 3rem 0 2rem;
+  color: #ccc;
+}
+
+.auth-divider::before, .auth-divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid #eee;
+}
+
+.auth-divider span {
+  padding: 0 10px;
+  font-size: 0.9rem;
 }
 
 .auth-links {
-  margin-top: 4rem;
-  text-align: left;
-  font-size: 1.1rem;
-  color: #1a3626;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #888;
 }
 
 .auth-links a {
-  color: #1a3626;
-  text-decoration: underline;
+  color: #9cbdae;
+  font-weight: 600;
+  text-decoration: none;
+  margin-left: 0.5rem;
 }
 
 .error-message {
@@ -123,4 +151,133 @@
   margin-bottom: 1.5rem;
   font-size: 0.9rem;
   border-left: 4px solid #cf2e2e;
+}
+
+/* CSS Art Container */
+.css-art-container {
+  position: relative;
+  width: 320px;
+  height: 320px;
+  margin-bottom: 3rem;
+}
+
+.art-circle-lg {
+  position: absolute;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.15);
+  top: 40px;
+  left: 50px;
+}
+
+.art-circle-sm {
+  position: absolute;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #f7f4ec;
+  top: 10px;
+  left: 220px;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+}
+
+.art-card {
+  position: absolute;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+  padding: 20px;
+}
+
+.main-card {
+  width: 160px;
+  height: 200px;
+  top: 70px;
+  left: 80px;
+  z-index: 2;
+}
+
+.side-card {
+  width: 120px;
+  height: 140px;
+  top: 140px;
+  left: 20px;
+  z-index: 3;
+  background: #1a3626;
+}
+
+.art-line {
+  height: 8px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+}
+
+.main-card .art-line {
+  background: #eef2f0;
+}
+.side-card .art-line {
+  background: #3e6d55;
+}
+
+.short { width: 40%; }
+.medium { width: 70%; }
+.long { width: 90%; }
+
+.art-floating-bubble {
+  position: absolute;
+  border-radius: 50%;
+  background: #e9955c;
+  box-shadow: 0 5px 15px rgba(233,149,92,0.4);
+}
+
+.bubble-1 {
+  width: 40px;
+  height: 40px;
+  bottom: 20px;
+  right: 50px;
+  z-index: 4;
+}
+
+.bubble-2 {
+  width: 20px;
+  height: 20px;
+  top: 110px;
+  left: -20px;
+}
+
+.auth-left-text {
+  text-align: center;
+  max-width: 80%;
+}
+
+.auth-left-text h3 {
+  font-family: var(--sans);
+  font-size: 1.8rem;
+  font-weight: 500;
+  margin-bottom: 1rem;
+}
+
+.auth-left-text p {
+  font-size: 1rem;
+  line-height: 1.6;
+  margin-bottom: 3rem;
+  opacity: 0.85;
+}
+
+.carousel-dots {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.carousel-dots .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.3);
+}
+
+.carousel-dots .dot.active {
+  background: white;
 }
