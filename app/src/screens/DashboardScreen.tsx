@@ -103,7 +103,7 @@ export const DashboardScreen = ({ navigation }: any) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f4f7f6',
+    backgroundColor: '#f8f9fb',
   },
   header: {
     flexDirection: 'row',
@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#03175b',
   },
   logoutBtn: {
     padding: 8,
@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   projectsBtn: {
-    backgroundColor: '#3498db',
+    backgroundColor: '#00aff2',
     margin: 15,
     padding: 15,
     borderRadius: 8,

@@ -203,7 +203,7 @@ export const ProjectsScreen = ({ navigation }: any) => {
 
       {error ? <Text style={styles.error}>{error}</Text> : null}
       {loading ? (
-        <ActivityIndicator size="large" color="#007bff" style={{ marginTop: 20 }} />
+        <ActivityIndicator size="large" color="#0b4cad" style={{ marginTop: 20 }} />
       ) : (
         <FlatList
           data={projects}
@@ -221,7 +221,7 @@ export const ProjectsScreen = ({ navigation }: any) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f4f7f6',
+    backgroundColor: '#f8f9fb',
   },
   header: {
     flexDirection: 'row',
@@ -235,10 +235,10 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#03175b',
   },
   addBtn: {
-    backgroundColor: '#007bff',
+    backgroundColor: '#0b4cad',
     paddingVertical: 8,
     paddingHorizontal: 15,
     borderRadius: 5,
@@ -254,7 +254,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center'
   },
   filterBadgeActive: {
-    backgroundColor: '#007bff',
+    backgroundColor: '#0b4cad',
   },
   filterBadgeText: {
     fontSize: 12,
@@ -285,13 +285,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   btnPrimary: {
-    backgroundColor: '#007bff', padding: 10, borderRadius: 4, flex: 1, marginRight: 5, alignItems: 'center'
+    backgroundColor: '#0b4cad', padding: 10, borderRadius: 4, flex: 1, marginRight: 5, alignItems: 'center'
   },
   btnSecondary: {
     backgroundColor: '#eee', padding: 10, borderRadius: 4, flex: 1, marginLeft: 5, alignItems: 'center'
   },
   btnText: { color: 'white', fontWeight: 'bold' },
-  btnTextSecondary: { color: '#333', fontWeight: 'bold' },
+  btnTextSecondary: { color: '#03175b', fontWeight: 'bold' },
   btnAction: {
     backgroundColor: '#eee',
     paddingVertical: 5,
@@ -303,7 +303,7 @@ const styles = StyleSheet.create({
   },
   btnActionText: {
     fontSize: 12,
-    color: '#333',
+    color: '#03175b',
   },
   btnActionTextDelete: {
     fontSize: 12,
@@ -343,7 +343,7 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     fontSize: 10,
-    color: '#333',
+    color: '#03175b',
   },
   cardDescription: {
     color: '#7f8c8d',
