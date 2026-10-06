@@ -42,7 +42,7 @@ export const Dashboard = () => {
           <h3>ProjectManager</h3>
         </div>
         <ul className="nav-links">
-          <li><Link to="/" className="active">Dashboard</Link></li>
+          <li><Link to="/dashboard" className="active">Dashboard</Link></li>
           <li><Link to="/projects">Projects</Link></li>
         </ul>
         <div className="sidebar-footer">

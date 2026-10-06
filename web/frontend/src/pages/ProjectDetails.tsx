@@ -137,7 +137,7 @@ export const ProjectDetails = () => {
           <h3>ProjectManager</h3>
         </div>
         <ul className="nav-links">
-          <li><Link to="/">Dashboard</Link></li>
+          <li><Link to="/dashboard">Dashboard</Link></li>
           <li><Link to="/projects" className="active">Projects</Link></li>
         </ul>
         <div className="sidebar-footer">
