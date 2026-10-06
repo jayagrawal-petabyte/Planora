@@ -108,11 +108,19 @@
   padding: 4rem 2rem;
 }
 
+.hero-header-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
 .welcome-text {
   color: #1a3626;
   font-weight: 500;
   font-size: 1.1rem;
-  margin-bottom: 0.5rem;
+  margin: 0;
 }
 
 .hero-title {
@@ -121,8 +129,9 @@
   font-weight: 800;
   font-size: 6rem;
   color: #1a3626;
-  margin: 0 0 3rem 0;
+  margin: 0;
   letter-spacing: 2px;
+  line-height: 1.1;
 }
 
 /* Graphic CSS Art representing the Crewpal image */
@@ -242,50 +251,75 @@
   z-index: 5;
 }
 
-.hero-content {
-  text-align: center;
-  margin-bottom: 4rem;
+/* Modal styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(2px);
 }
 
-.hero-content h2 {
-  font-size: 2rem;
-  font-weight: 700;
-  line-height: 1.3;
-  margin-bottom: 1rem;
-}
-
-.hero-content u {
-  text-decoration-color: rgba(26, 54, 38, 0.4);
-  text-decoration-thickness: 3px;
-  text-underline-offset: 4px;
-}
-
-.hero-content p {
-  color: #1a3626;
-  opacity: 0.8;
-  font-size: 1.1rem;
-}
-
-.contact-section {
-  text-align: center;
-  padding: 3rem;
+.contact-modal {
   background: white;
+  padding: 3rem;
   border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-  margin-bottom: 2rem;
-  width: 100%;
-  max-width: 600px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  position: relative;
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
 }
 
-.contact-section h3 {
+.close-btn {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  background: none;
+  border: none;
   font-size: 1.5rem;
-  margin-bottom: 1rem;
+  cursor: pointer;
+  color: #1a3626;
+  opacity: 0.5;
+  transition: opacity 0.2s;
 }
 
-.contact-section p, .contact-section a {
-  margin: 0.5rem 0;
-  font-size: 1.1rem;
+.close-btn:hover {
+  opacity: 1;
+}
+
+.contact-modal h3 {
+  font-size: 1.5rem;
+  margin-top: 0;
+  margin-bottom: 1.5rem;
   color: #1a3626;
+  font-family: 'Playfair Display', serif;
+}
+
+.contact-info p {
+  margin: 0.8rem 0;
+  font-size: 1rem;
+  color: #1a3626;
+}
+
+.contact-info a {
+  color: #0b4cad;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.contact-info a:hover {
+  text-decoration: underline;
+}
+
+.get-started-btn {
+  text-decoration: none;
 }
 
 @media (max-width: 768px) {
@@ -295,8 +329,5 @@
   .hero-graphic {
     transform: scale(0.6);
     margin-bottom: 0;
-  }
-  .hero-content h2 {
-    font-size: 1.5rem;
   }
 }
