@@ -21,20 +21,37 @@ export const ProjectDetails = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   
+  // Search & Filters
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [priorityFilter, setPriorityFilter] = useState('');
+
   // Task form
   const [taskName, setTaskName] = useState('');
   const [taskDesc, setTaskDesc] = useState('');
   const [showTaskForm, setShowTaskForm] = useState(false);
 
+  // Edit Task
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+  const [editTaskName, setEditTaskName] = useState('');
+  const [editTaskDesc, setEditTaskDesc] = useState('');
+  const [editTaskStatus, setEditTaskStatus] = useState('');
+  const [editTaskPriority, setEditTaskPriority] = useState('');
+
   useEffect(() => {
     fetchProjectAndTasks();
-  }, [id]);
+  }, [id, search, statusFilter, priorityFilter]);
 
   const fetchProjectAndTasks = async () => {
     try {
+      let tasksUrl = `/tasks?projectId=${id}`;
+      if (search) tasksUrl += `&search=${encodeURIComponent(search)}`;
+      if (statusFilter) tasksUrl += `&status=${encodeURIComponent(statusFilter)}`;
+      if (priorityFilter) tasksUrl += `&priority=${encodeURIComponent(priorityFilter)}`;
+
       const [projRes, tasksRes] = await Promise.all([
         api.get(`/projects/${id}`),
-        api.get(`/tasks?projectId=${id}`)
+        api.get(tasksUrl)
       ]);
       setProject(projRes.data.data.project);
       setTasks(tasksRes.data.data.tasks);
@@ -85,6 +102,32 @@ export const ProjectDetails = () => {
     }
   };
 
+  const startEditTask = (task: Task) => {
+    setEditingTaskId(task.id);
+    setEditTaskName(task.name);
+    setEditTaskDesc(task.description || '');
+    setEditTaskStatus(task.status);
+    setEditTaskPriority(task.priority);
+  };
+
+  const handleEditTaskSubmit = async (e: React.FormEvent, taskId: string) => {
+    e.preventDefault();
+    try {
+      const res = await api.put(`/tasks/${taskId}`, {
+        name: editTaskName,
+        description: editTaskDesc,
+        status: editTaskStatus,
+        priority: editTaskPriority
+      });
+      if (res.data.success) {
+        setTasks(tasks.map(t => t.id === taskId ? res.data.data.task : t));
+        setEditingTaskId(null);
+      }
+    } catch (err) {
+      alert('Failed to update task');
+    }
+  };
+
   if (loading) return <div>Loading...</div>;
 
   return (
@@ -122,6 +165,36 @@ export const ProjectDetails = () => {
             </button>
           </div>
 
+          <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
+            <input 
+              type="text" 
+              placeholder="Search tasks..." 
+              value={search} 
+              onChange={(e) => setSearch(e.target.value)}
+              style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc', flex: 1 }}
+            />
+            <select 
+              value={statusFilter} 
+              onChange={(e) => setStatusFilter(e.target.value)}
+              style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc' }}
+            >
+              <option value="">All Statuses</option>
+              <option value="PENDING">Pending</option>
+              <option value="IN_PROGRESS">In Progress</option>
+              <option value="COMPLETED">Completed</option>
+            </select>
+            <select 
+              value={priorityFilter} 
+              onChange={(e) => setPriorityFilter(e.target.value)}
+              style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc' }}
+            >
+              <option value="">All Priorities</option>
+              <option value="LOW">Low</option>
+              <option value="MEDIUM">Medium</option>
+              <option value="HIGH">High</option>
+            </select>
+          </div>
+
           {showTaskForm && (
             <div className="stat-card" style={{ marginBottom: '1.5rem' }}>
               <form onSubmit={handleCreateTask}>
@@ -144,20 +217,52 @@ export const ProjectDetails = () => {
             ) : (
               tasks.map(task => (
                 <div key={task.id} className="stat-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div>
-                    <h4 style={{ margin: '0 0 0.5rem 0', textDecoration: task.status === 'COMPLETED' ? 'line-through' : 'none' }}>
-                      {task.name}
-                    </h4>
-                    <p style={{ margin: '0', fontSize: '0.9rem', color: '#7f8c8d' }}>{task.description}</p>
-                  </div>
-                  <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <button onClick={() => toggleTaskStatus(task.id, task.status)} className="btn-secondary" style={{ padding: '0.3rem 0.6rem' }}>
-                      {task.status === 'COMPLETED' ? 'Mark Pending' : 'Complete'}
-                    </button>
-                    <button onClick={() => handleDeleteTask(task.id)} className="btn-secondary" style={{ padding: '0.3rem 0.6rem', background: '#e74c3c', color: 'white', border: 'none' }}>
-                      Delete
-                    </button>
-                  </div>
+                  {editingTaskId === task.id ? (
+                    <form onSubmit={(e) => handleEditTaskSubmit(e, task.id)} style={{ width: '100%' }}>
+                      <input type="text" value={editTaskName} onChange={e => setEditTaskName(e.target.value)} required style={{width: '100%', marginBottom: '0.5rem', padding: '0.5rem'}} />
+                      <input type="text" value={editTaskDesc} onChange={e => setEditTaskDesc(e.target.value)} style={{width: '100%', marginBottom: '0.5rem', padding: '0.5rem'}} />
+                      <div style={{ display: 'flex', gap: '1rem', marginBottom: '0.5rem' }}>
+                        <select value={editTaskStatus} onChange={e => setEditTaskStatus(e.target.value)} style={{flex: 1, padding: '0.5rem'}}>
+                          <option value="PENDING">Pending</option>
+                          <option value="IN_PROGRESS">In Progress</option>
+                          <option value="COMPLETED">Completed</option>
+                        </select>
+                        <select value={editTaskPriority} onChange={e => setEditTaskPriority(e.target.value)} style={{flex: 1, padding: '0.5rem'}}>
+                          <option value="LOW">Low</option>
+                          <option value="MEDIUM">Medium</option>
+                          <option value="HIGH">High</option>
+                        </select>
+                      </div>
+                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <button type="submit" className="btn-primary" style={{ marginTop: 0, flex: 1, padding: '0.5rem' }}>Save</button>
+                        <button type="button" onClick={() => setEditingTaskId(null)} className="btn-secondary" style={{ marginTop: 0, flex: 1, padding: '0.5rem' }}>Cancel</button>
+                      </div>
+                    </form>
+                  ) : (
+                    <>
+                      <div>
+                        <h4 style={{ margin: '0 0 0.5rem 0', textDecoration: task.status === 'COMPLETED' ? 'line-through' : 'none' }}>
+                          {task.name}
+                        </h4>
+                        <p style={{ margin: '0', fontSize: '0.9rem', color: '#7f8c8d' }}>{task.description}</p>
+                        <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.5rem' }}>
+                          <span style={{ fontSize: '0.7rem', padding: '0.2rem 0.4rem', background: '#e0e0e0', borderRadius: '4px' }}>{task.status}</span>
+                          <span style={{ fontSize: '0.7rem', padding: '0.2rem 0.4rem', background: task.priority === 'HIGH' ? '#e74c3c' : task.priority === 'MEDIUM' ? '#f39c12' : '#3498db', color: 'white', borderRadius: '4px' }}>{task.priority}</span>
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <button onClick={() => toggleTaskStatus(task.id, task.status)} className="btn-secondary" style={{ padding: '0.3rem 0.6rem' }}>
+                          {task.status === 'COMPLETED' ? 'Mark Pending' : 'Complete'}
+                        </button>
+                        <button onClick={() => startEditTask(task)} className="btn-secondary" style={{ padding: '0.3rem 0.6rem' }}>
+                          Edit
+                        </button>
+                        <button onClick={() => handleDeleteTask(task.id)} className="btn-secondary" style={{ padding: '0.3rem 0.6rem', background: '#e74c3c', color: 'white', border: 'none' }}>
+                          Delete
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </div>
               ))
             )}

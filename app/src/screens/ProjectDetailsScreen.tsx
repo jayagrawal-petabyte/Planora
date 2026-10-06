@@ -20,6 +20,8 @@ export const ProjectDetailsScreen = ({ route }: any) => {
 
   // Search & Filter
   const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [priorityFilter, setPriorityFilter] = useState('');
   
   // Task form
   const [showForm, setShowForm] = useState(false);
@@ -27,9 +29,21 @@ export const ProjectDetailsScreen = ({ route }: any) => {
   const [taskDesc, setTaskDesc] = useState('');
   const [creating, setCreating] = useState(false);
 
+  // Edit Task
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editDesc, setEditDesc] = useState('');
+  const [editStatus, setEditStatus] = useState('');
+  const [editPriority, setEditPriority] = useState('');
+
   const fetchTasks = async () => {
     try {
-      const res = await api.get(`/tasks?projectId=${projectId}&search=${search}`);
+      let url = `/tasks?projectId=${projectId}`;
+      if (search) url += `&search=${encodeURIComponent(search)}`;
+      if (statusFilter) url += `&status=${encodeURIComponent(statusFilter)}`;
+      if (priorityFilter) url += `&priority=${encodeURIComponent(priorityFilter)}`;
+
+      const res = await api.get(url);
       if (res.data.success) {
         setTasks(res.data.data.tasks);
         setError('');
@@ -44,12 +58,12 @@ export const ProjectDetailsScreen = ({ route }: any) => {
 
   useEffect(() => {
     fetchTasks();
-  }, [search]); // re-fetch when search changes
+  }, [search, statusFilter, priorityFilter]);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     fetchTasks();
-  }, [search]);
+  }, [search, statusFilter, priorityFilter]);
 
   const handleCreateTask = async () => {
     if (!taskName.trim()) {
@@ -81,16 +95,29 @@ export const ProjectDetailsScreen = ({ route }: any) => {
       Alert.alert('Error', 'Failed to update task status');
     }
   };
-  
-  const changePriority = async (task: Task) => {
-    const priorities = ['LOW', 'MEDIUM', 'HIGH'];
-    const currentIndex = priorities.indexOf(task.priority);
-    const newPriority = priorities[(currentIndex + 1) % priorities.length];
+
+  const startEdit = (task: Task) => {
+    setEditingId(task.id);
+    setEditName(task.name);
+    setEditDesc(task.description || '');
+    setEditStatus(task.status);
+    setEditPriority(task.priority);
+  };
+
+  const handleEditSubmit = async (id: string) => {
     try {
-      await api.put(`/tasks/${task.id}`, { priority: newPriority });
-      setTasks(tasks.map(t => t.id === task.id ? { ...t, priority: newPriority } : t));
+      const res = await api.put(`/tasks/${id}`, {
+        name: editName,
+        description: editDesc,
+        status: editStatus,
+        priority: editPriority
+      });
+      if (res.data.success) {
+        setTasks(tasks.map(t => t.id === id ? res.data.data.task : t));
+        setEditingId(null);
+      }
     } catch (err) {
-      Alert.alert('Error', 'Failed to update priority');
+      Alert.alert('Error', 'Failed to update task');
     }
   };
 
@@ -112,40 +139,87 @@ export const ProjectDetailsScreen = ({ route }: any) => {
     ]);
   };
 
-  const renderItem = ({ item }: { item: Task }) => (
-    <View style={styles.card}>
-      <View style={styles.cardHeader}>
-        <Text style={[styles.cardTitle, item.status === 'COMPLETED' && styles.completedText]}>
-          {item.name}
-        </Text>
-        <TouchableOpacity style={[styles.badge, (styles as any)[`priority${item.priority}`]]} onPress={() => changePriority(item)}>
-          <Text style={styles.badgeText}>{item.priority}</Text>
-        </TouchableOpacity>
+  const renderItem = ({ item }: { item: Task }) => {
+    if (editingId === item.id) {
+      return (
+        <View style={styles.card}>
+          <TextInput style={styles.input} value={editName} onChangeText={setEditName} />
+          <TextInput style={styles.input} value={editDesc} onChangeText={setEditDesc} />
+          
+          <View style={{ flexDirection: 'row', gap: 10, marginBottom: 10 }}>
+            <TouchableOpacity onPress={() => setEditStatus(editStatus === 'COMPLETED' ? 'PENDING' : 'COMPLETED')} style={[styles.filterBadge, editStatus === 'COMPLETED' && styles.filterBadgeActive]}>
+               <Text style={styles.filterBadgeText}>{editStatus}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => {
+              const p = ['LOW', 'MEDIUM', 'HIGH'];
+              setEditPriority(p[(p.indexOf(editPriority) + 1) % p.length]);
+            }} style={[styles.filterBadge, styles.filterBadgeActive]}>
+               <Text style={styles.filterBadgeText}>{editPriority}</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+            <TouchableOpacity style={styles.btnPrimary} onPress={() => handleEditSubmit(item.id)}>
+              <Text style={styles.btnText}>Save</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.btnSecondary} onPress={() => setEditingId(null)}>
+              <Text style={styles.btnTextSecondary}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      );
+    }
+
+    return (
+      <View style={styles.card}>
+        <View style={styles.cardHeader}>
+          <Text style={[styles.cardTitle, item.status === 'COMPLETED' && styles.completedText]}>
+            {item.name}
+          </Text>
+          <View style={[styles.badge, (styles as any)[`priority${item.priority}`]]}>
+            <Text style={styles.badgeText}>{item.priority}</Text>
+          </View>
+        </View>
+        <Text style={styles.cardDescription}>{item.description}</Text>
+        
+        <View style={styles.actions}>
+          <TouchableOpacity style={[styles.btn, item.status === 'COMPLETED' ? styles.btnPending : styles.btnComplete]} onPress={() => toggleStatus(item)}>
+            <Text style={styles.btnActionText}>{item.status === 'COMPLETED' ? 'Mark Pending' : 'Complete'}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.btn, {backgroundColor: '#eee'}]} onPress={() => startEdit(item)}>
+            <Text style={[styles.btnActionText, {color: '#333'}]}>Edit</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.btn, styles.btnDelete]} onPress={() => deleteTask(item.id)}>
+            <Text style={styles.btnActionText}>Delete</Text>
+          </TouchableOpacity>
+        </View>
       </View>
-      <Text style={styles.cardDescription}>{item.description}</Text>
-      
-      <View style={styles.actions}>
-        <TouchableOpacity style={[styles.btn, item.status === 'COMPLETED' ? styles.btnPending : styles.btnComplete]} onPress={() => toggleStatus(item)}>
-          <Text style={styles.btnText}>{item.status === 'COMPLETED' ? 'Mark Pending' : 'Complete'}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={[styles.btn, styles.btnDelete]} onPress={() => deleteTask(item.id)}>
-          <Text style={styles.btnText}>Delete</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
+    );
+  };
 
   return (
     <View style={styles.container}>
       <View style={styles.searchBar}>
         <TextInput
           style={styles.searchInput}
-          placeholder="Search tasks..."
+          placeholder="Search..."
           value={search}
           onChangeText={setSearch}
         />
         <TouchableOpacity style={styles.addBtn} onPress={() => setShowForm(!showForm)}>
           <Text style={styles.addBtnText}>{showForm ? 'Cancel' : 'Add'}</Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={{ flexDirection: 'row', padding: 10, backgroundColor: 'white', borderBottomWidth: 1, borderColor: '#eee', gap: 5 }}>
+        <TouchableOpacity onPress={() => setStatusFilter('')} style={[styles.filterBadge, statusFilter === '' && styles.filterBadgeActive]}>
+          <Text style={styles.filterBadgeText}>All Status</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => setStatusFilter('PENDING')} style={[styles.filterBadge, statusFilter === 'PENDING' && styles.filterBadgeActive]}>
+          <Text style={styles.filterBadgeText}>Pending</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => setPriorityFilter(priorityFilter ? '' : 'HIGH')} style={[styles.filterBadge, priorityFilter === 'HIGH' && styles.filterBadgeActive]}>
+          <Text style={styles.filterBadgeText}>{priorityFilter === 'HIGH' ? 'High Only' : 'Priority'}</Text>
         </TouchableOpacity>
       </View>
 
@@ -188,135 +262,39 @@ export const ProjectDetailsScreen = ({ route }: any) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f4f7f6',
-  },
-  searchBar: {
-    flexDirection: 'row',
-    padding: 15,
-    backgroundColor: 'white',
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-    alignItems: 'center',
-  },
-  searchInput: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 5,
-    padding: 10,
-    marginRight: 10,
-  },
-  addBtn: {
-    backgroundColor: '#007bff',
-    paddingVertical: 12,
-    paddingHorizontal: 15,
-    borderRadius: 5,
-  },
-  addBtnText: {
-    color: 'white',
-    fontWeight: 'bold',
-  },
-  createForm: {
-    backgroundColor: 'white',
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 5,
-    padding: 10,
-    marginBottom: 10,
-  },
-  submitBtn: {
-    backgroundColor: '#28a745',
-    padding: 12,
-    borderRadius: 5,
-    alignItems: 'center',
-  },
-  submitBtnText: {
-    color: 'white',
-    fontWeight: 'bold',
-  },
-  list: {
-    padding: 15,
-  },
-  card: {
-    backgroundColor: 'white',
-    padding: 15,
-    borderRadius: 8,
-    marginBottom: 15,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 5,
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#2c3e50',
-    flex: 1,
-  },
-  completedText: {
-    textDecorationLine: 'line-through',
-    color: '#95a5a6',
-  },
-  badge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
-  },
+  container: { flex: 1, backgroundColor: '#f4f7f6' },
+  searchBar: { flexDirection: 'row', padding: 10, backgroundColor: 'white', alignItems: 'center' },
+  searchInput: { flex: 1, borderWidth: 1, borderColor: '#ccc', borderRadius: 5, padding: 10, marginRight: 10 },
+  addBtn: { backgroundColor: '#007bff', paddingVertical: 10, paddingHorizontal: 15, borderRadius: 5 },
+  addBtnText: { color: 'white', fontWeight: 'bold' },
+  filterBadge: { padding: 6, backgroundColor: '#eee', borderRadius: 4, justifyContent: 'center' },
+  filterBadgeActive: { backgroundColor: '#007bff' },
+  filterBadgeText: { fontSize: 12, color: '#333' },
+  createForm: { backgroundColor: 'white', padding: 15, borderBottomWidth: 1, borderBottomColor: '#eee' },
+  input: { borderWidth: 1, borderColor: '#ccc', borderRadius: 5, padding: 10, marginBottom: 10 },
+  submitBtn: { backgroundColor: '#28a745', padding: 12, borderRadius: 5, alignItems: 'center' },
+  submitBtnText: { color: 'white', fontWeight: 'bold' },
+  list: { padding: 15 },
+  card: { backgroundColor: 'white', padding: 15, borderRadius: 8, marginBottom: 15, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 },
+  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 },
+  cardTitle: { fontSize: 16, fontWeight: 'bold', color: '#2c3e50', flex: 1 },
+  completedText: { textDecorationLine: 'line-through', color: '#95a5a6' },
+  badge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 4 },
   priorityLOW: { backgroundColor: '#3498db' },
   priorityMEDIUM: { backgroundColor: '#f39c12' },
   priorityHIGH: { backgroundColor: '#e74c3c' },
-  badgeText: {
-    fontSize: 12,
-    color: 'white',
-    fontWeight: 'bold',
-  },
-  cardDescription: {
-    color: '#7f8c8d',
-    fontSize: 14,
-    marginBottom: 15,
-  },
-  actions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
-    gap: 10,
-  },
-  btn: {
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 4,
-    marginRight: 10,
-  },
+  badgeText: { fontSize: 10, color: 'white', fontWeight: 'bold' },
+  cardDescription: { color: '#7f8c8d', fontSize: 12, marginBottom: 15 },
+  actions: { flexDirection: 'row', justifyContent: 'flex-start', gap: 5 },
+  btn: { paddingVertical: 6, paddingHorizontal: 10, borderRadius: 4 },
   btnComplete: { backgroundColor: '#2ecc71' },
   btnPending: { backgroundColor: '#f1c40f' },
   btnDelete: { backgroundColor: '#e74c3c' },
-  btnText: {
-    color: 'white',
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-  error: {
-    color: 'red',
-    padding: 20,
-    textAlign: 'center',
-  },
-  empty: {
-    textAlign: 'center',
-    marginTop: 50,
-    color: '#999',
-    fontSize: 16,
-  }
+  btnActionText: { color: 'white', fontSize: 10, fontWeight: 'bold' },
+  btnPrimary: { backgroundColor: '#007bff', padding: 10, borderRadius: 4, flex: 1, marginRight: 5, alignItems: 'center' },
+  btnSecondary: { backgroundColor: '#eee', padding: 10, borderRadius: 4, flex: 1, marginLeft: 5, alignItems: 'center' },
+  btnText: { color: 'white', fontWeight: 'bold' },
+  btnTextSecondary: { color: '#333', fontWeight: 'bold' },
+  error: { color: 'red', padding: 20, textAlign: 'center' },
+  empty: { textAlign: 'center', marginTop: 50, color: '#999', fontSize: 14 }
 });
