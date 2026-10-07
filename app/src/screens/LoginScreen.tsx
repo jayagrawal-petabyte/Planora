@@ -6,6 +6,7 @@ import api from '../services/api';
 export const LoginScreen = ({ navigation }: any) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
 
@@ -19,7 +20,7 @@ export const LoginScreen = ({ navigation }: any) => {
     try {
       const res = await api.post('/auth/login', { email, password });
       if (res.data.success) {
-        await login(res.data.data.token, res.data.data.user);
+        await login(res.data.data.token, res.data.data.refreshToken, res.data.data.user);
       }
     } catch (err: any) {
       Alert.alert('Login Failed', err.response?.data?.error?.message || err.message);
@@ -40,7 +41,7 @@ export const LoginScreen = ({ navigation }: any) => {
         <Text style={styles.title}>Welcome to Planora</Text>
         
         <View style={styles.form}>
-          <Text style={styles.label}>Email</Text>
+          <Text style={styles.label}>Email *</Text>
           <TextInput
             style={styles.input}
             value={email}
@@ -49,13 +50,18 @@ export const LoginScreen = ({ navigation }: any) => {
             autoCapitalize="none"
           />
           
-          <Text style={styles.label}>Password</Text>
-          <TextInput
-            style={styles.input}
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-          />
+          <Text style={styles.label}>Password *</Text>
+          <View style={styles.passwordContainer}>
+            <TextInput
+              style={[styles.input, { flex: 1, marginBottom: 0 }]}
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!showPassword}
+            />
+            <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
+              <Text style={{ color: '#64748b' }}>{showPassword ? 'Hide' : 'Show'}</Text>
+            </TouchableOpacity>
+          </View>
 
           <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
             {loading ? (
@@ -185,4 +191,16 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: 'bold',
   },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd',
+  },
+  eyeIcon: {
+    padding: 10,
+    position: 'absolute',
+    right: 0,
+  }
 });

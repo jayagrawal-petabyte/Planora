@@ -1,119 +1,117 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,700;1,800&family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,700&family=Inter:wght@400;500;600&display=swap');
 
 :root {
-  --text: #1a3626;
-  --text-h: #1a3626;
-  --bg: #f7f4ec;
-  --border: rgba(26, 54, 38, 0.2);
-  --code-bg: rgba(26, 54, 38, 0.05);
-  --accent: #1a3626;
-  --accent-secondary: #2a5a3f;
-  --accent-bg: rgba(26, 54, 38, 0.1);
-  --accent-border: rgba(26, 54, 38, 0.5);
-  --social-bg: rgba(247, 244, 236, 0.5);
-  --shadow: rgba(26, 54, 38, 0.08) 0 4px 12px;
+  --bg-color: #faf7f2;
+  --bg-surface: #ffffff;
+  --text-main: #333333;
+  --text-muted: #666666;
+  
+  --primary: #1a3626; /* Dark green */
+  --primary-hover: #234833;
+  --secondary: #9eb6a6; /* Sage green */
+  
+  --danger: #ef4444;
+  --warning: #f59e0b;
 
-  --sans: 'Inter', Arial, sans-serif;
-  --heading: 'Playfair Display', serif;
-  --mono: ui-monospace, Consolas, monospace;
+  --border: #e0e0e0;
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 
-  font: 16px/150% var(--sans);
-  letter-spacing: 0.2px;
-  color-scheme: light;
-  color: var(--text);
-  background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-#root {
-  width: 100%;
-  max-width: 100%;
-  margin: 0;
-  text-align: left;
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
+  --font-sans: 'Inter', sans-serif;
+  --font-display: 'Playfair Display', serif;
 }
 
 body {
   margin: 0;
-  background-color: var(--bg);
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  font-family: var(--font-sans);
+  min-height: 100vh;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--heading);
-  font-weight: 600;
-  color: var(--text-h);
-}
-
-h1 {
-  font-size: 2.5rem;
-  margin: 1.5rem 0;
-}
-
-h2 {
-  font-size: 1.8rem;
-  margin: 0 0 0.5rem;
-}
-
-p {
-  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--primary);
+  margin-top: 0;
 }
 
 a {
-  color: var(--accent);
+  color: var(--primary);
   text-decoration: none;
-  transition: color 0.2s ease;
+  transition: all 0.2s ease;
 }
 
 a:hover {
-  color: var(--accent-secondary);
+  text-decoration: underline;
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--accent) 0%, #102619 100%);
+  background: var(--primary);
   color: white;
   border: none;
-  padding: 0.8rem 1.5rem;
-  border-radius: 6px;
-  font-family: var(--heading);
+  padding: 0.75rem 1.5rem;
+  border-radius: 20px;
+  font-family: var(--font-sans);
   font-weight: 600;
+  font-size: 1rem;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 6px rgba(26, 54, 38, 0.2);
+  transition: all 0.2s ease;
 }
 
 .btn-primary:hover {
-  background: linear-gradient(135deg, var(--accent-secondary) 0%, var(--accent) 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(26, 54, 38, 0.3);
+  background: var(--primary-hover);
+  transform: translateY(-1px);
 }
 
 .btn-secondary {
-  background: white;
-  color: var(--accent);
-  border: 1px solid var(--accent);
+  background: transparent;
+  color: var(--primary);
+  border: 1px solid var(--primary);
   padding: 0.6rem 1.2rem;
-  border-radius: 6px;
-  font-family: var(--heading);
+  border-radius: 20px;
+  font-family: var(--font-sans);
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .btn-secondary:hover {
-  background: var(--accent-bg);
-  color: var(--text-h);
+  background: rgba(26, 54, 38, 0.05);
 }
 
 .card {
-  background: white;
-  border-radius: 12px;
-  padding: 1.5rem;
-  box-shadow: var(--shadow);
+  background: var(--bg-surface);
   border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+}
+
+input, select, textarea {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-main);
+  padding: 0.75rem 0;
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  transition: border-color 0.2s ease;
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-bottom-color: var(--primary);
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 0.2rem;
 }

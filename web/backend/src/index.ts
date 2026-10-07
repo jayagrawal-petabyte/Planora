@@ -6,6 +6,7 @@ import authRoutes from './routes/authRoutes';
 import projectRoutes from './routes/projectRoutes';
 import taskRoutes from './routes/taskRoutes';
 import dashboardRoutes from './routes/dashboardRoutes';
+import { startCronJobs } from './services/notificationService';
 
 dotenv.config();
 
@@ -30,6 +31,9 @@ app.get('/api/health', (req, res) => {
 // Error handling middleware
 app.use(errorHandler);
 
-app.listen(PORT, () => {
+// Start cron jobs
+startCronJobs();
+
+app.listen(Number(PORT), '0.0.0.0', () => {
   console.log(`Server is running on port ${PORT}`);
 });

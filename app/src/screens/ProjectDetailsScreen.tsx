@@ -1,17 +1,14 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl, TextInput, Alert, ActivityIndicator } from 'react-native';
 import api from '../services/api';
+import * as SecureStore from 'expo-secure-store';
+import { useAuth } from '../context/AuthContext';
 
-interface Task {
-  id: string;
-  name: string;
-  description: string;
-  status: string;
-  priority: string;
-}
+import { Task } from '@planora/shared';
 
 export const ProjectDetailsScreen = ({ route }: any) => {
   const { id: projectId, name: projectName } = route.params;
+  const { user } = useAuth();
   
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
@@ -22,6 +19,12 @@ export const ProjectDetailsScreen = ({ route }: any) => {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [priorityFilter, setPriorityFilter] = useState('');
+  
+  // Pagination & Sorting
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [sortBy, setSortBy] = useState('createdAt');
+  const [sortOrder, setSortOrder] = useState('desc');
   
   // Task form
   const [showForm, setShowForm] = useState(false);
@@ -38,7 +41,7 @@ export const ProjectDetailsScreen = ({ route }: any) => {
 
   const fetchTasks = async () => {
     try {
-      let url = `/tasks?projectId=${projectId}`;
+      let url = `/tasks?projectId=${projectId}&page=${page}&limit=10&sortBy=${sortBy}&sortOrder=${sortOrder}`;
       if (search) url += `&search=${encodeURIComponent(search)}`;
       if (statusFilter) url += `&status=${encodeURIComponent(statusFilter)}`;
       if (priorityFilter) url += `&priority=${encodeURIComponent(priorityFilter)}`;
@@ -46,10 +49,32 @@ export const ProjectDetailsScreen = ({ route }: any) => {
       const res = await api.get(url);
       if (res.data.success) {
         setTasks(res.data.data.tasks);
+        setTotalPages(res.data.data.pagination?.totalPages || 1);
         setError('');
+        
+        // Cache tasks for offline viewing
+        if (page === 1 && !search && !statusFilter && !priorityFilter) {
+           await SecureStore.setItemAsync(`offline_tasks_${projectId}`, JSON.stringify(res.data.data.tasks));
+        }
       }
     } catch (err: any) {
-      setError(err.message || 'Failed to load tasks');
+      // Fallback to offline cache if network fails
+      if (err.message && err.message.includes('Network error')) {
+         try {
+           const cached = await SecureStore.getItemAsync(`offline_tasks_${projectId}`);
+           if (cached) {
+             setTasks(JSON.parse(cached));
+             setError('Offline mode: Showing cached tasks.');
+             setTotalPages(1);
+           } else {
+             setError(err.message);
+           }
+         } catch (e) {
+           setError(err.message || 'Failed to load tasks');
+         }
+      } else {
+        setError(err.message || 'Failed to load tasks');
+      }
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -58,12 +83,12 @@ export const ProjectDetailsScreen = ({ route }: any) => {
 
   useEffect(() => {
     fetchTasks();
-  }, [search, statusFilter, priorityFilter]);
+  }, [search, statusFilter, priorityFilter, page, sortBy, sortOrder]);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     fetchTasks();
-  }, [search, statusFilter, priorityFilter]);
+  }, [search, statusFilter, priorityFilter, page, sortBy, sortOrder]);
 
   const handleCreateTask = async () => {
     if (!taskName.trim()) {
@@ -189,9 +214,11 @@ export const ProjectDetailsScreen = ({ route }: any) => {
           <TouchableOpacity style={[styles.btn, {backgroundColor: '#eee'}]} onPress={() => startEdit(item)}>
             <Text style={[styles.btnActionText, {color: '#1a3626'}]}>Edit</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.btn, styles.btnDelete]} onPress={() => deleteTask(item.id)}>
-            <Text style={styles.btnActionText}>Delete</Text>
-          </TouchableOpacity>
+          {user?.role === 'ADMIN' && (
+            <TouchableOpacity style={[styles.btn, styles.btnDelete]} onPress={() => deleteTask(item.id)}>
+              <Text style={styles.btnActionText}>Delete</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </View>
     );
@@ -211,15 +238,21 @@ export const ProjectDetailsScreen = ({ route }: any) => {
         </TouchableOpacity>
       </View>
 
-      <View style={{ flexDirection: 'row', padding: 10, backgroundColor: 'white', borderBottomWidth: 1, borderColor: '#eee', gap: 5 }}>
-        <TouchableOpacity onPress={() => setStatusFilter('')} style={[styles.filterBadge, statusFilter === '' && styles.filterBadgeActive]}>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', padding: 10, backgroundColor: 'white', borderBottomWidth: 1, borderColor: '#eee', gap: 5 }}>
+        <TouchableOpacity onPress={() => { setStatusFilter(''); setPage(1); }} style={[styles.filterBadge, statusFilter === '' && styles.filterBadgeActive]}>
           <Text style={styles.filterBadgeText}>All Status</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => setStatusFilter('PENDING')} style={[styles.filterBadge, statusFilter === 'PENDING' && styles.filterBadgeActive]}>
+        <TouchableOpacity onPress={() => { setStatusFilter('PENDING'); setPage(1); }} style={[styles.filterBadge, statusFilter === 'PENDING' && styles.filterBadgeActive]}>
           <Text style={styles.filterBadgeText}>Pending</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => setPriorityFilter(priorityFilter ? '' : 'HIGH')} style={[styles.filterBadge, priorityFilter === 'HIGH' && styles.filterBadgeActive]}>
+        <TouchableOpacity onPress={() => { setPriorityFilter(priorityFilter ? '' : 'HIGH'); setPage(1); }} style={[styles.filterBadge, priorityFilter === 'HIGH' && styles.filterBadgeActive]}>
           <Text style={styles.filterBadgeText}>{priorityFilter === 'HIGH' ? 'High Only' : 'Priority'}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => { setSortBy(sortBy === 'createdAt' ? 'priority' : 'createdAt'); setPage(1); }} style={styles.filterBadge}>
+          <Text style={styles.filterBadgeText}>Sort: {sortBy === 'createdAt' ? 'Date' : 'Priority'}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => { setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc'); setPage(1); }} style={styles.filterBadge}>
+          <Text style={styles.filterBadgeText}>{sortOrder === 'desc' ? '↓ Desc' : '↑ Asc'}</Text>
         </TouchableOpacity>
       </View>
 
@@ -255,6 +288,17 @@ export const ProjectDetailsScreen = ({ route }: any) => {
           contentContainerStyle={styles.list}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
           ListEmptyComponent={<Text style={styles.empty}>No tasks found.</Text>}
+          ListFooterComponent={
+            <View style={{ flexDirection: 'row', justifyContent: 'center', padding: 20, gap: 15, alignItems: 'center' }}>
+              <TouchableOpacity onPress={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} style={[styles.btn, {backgroundColor: '#1a3626'}, page === 1 && { opacity: 0.5 }]}>
+                <Text style={{color:'white'}}>Prev</Text>
+              </TouchableOpacity>
+              <Text>Page {page} of {totalPages}</Text>
+              <TouchableOpacity onPress={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages || totalPages === 0} style={[styles.btn, {backgroundColor: '#1a3626'}, (page === totalPages || totalPages === 0) && { opacity: 0.5 }]}>
+                <Text style={{color:'white'}}>Next</Text>
+              </TouchableOpacity>
+            </View>
+          }
         />
       )}
     </View>

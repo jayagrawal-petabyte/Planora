@@ -1,20 +1,18 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { Sidebar } from '../components/Sidebar';
+import { Modal } from '../components/Modal';
+import DatePicker from 'react-datepicker';
+import { Calendar } from 'lucide-react';
+import 'react-datepicker/dist/react-datepicker.css';
 import './Dashboard.css'; // Reusing layout styles
 
-interface Project {
-  id: string;
-  name: string;
-  description: string;
-  status: string;
-  startDate: string;
-  endDate: string;
-}
+import type { Project } from '@planora/shared';
 
 export const Projects = () => {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -23,10 +21,19 @@ export const Projects = () => {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
 
+  // Pagination & Sorting
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [sortBy, setSortBy] = useState('createdAt');
+  const [sortOrder, setSortOrder] = useState('desc');
+
   // Create project form state
   const [showCreate, setShowCreate] = useState(false);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [status, setStatus] = useState('NOT_STARTED');
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
 
   // Edit project state
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -36,18 +43,19 @@ export const Projects = () => {
 
   useEffect(() => {
     fetchProjects();
-  }, [search, statusFilter]);
+  }, [search, statusFilter, page, sortBy, sortOrder]);
 
   const fetchProjects = async () => {
     setLoading(true);
     try {
-      let url = '/projects?';
-      if (search) url += `search=${encodeURIComponent(search)}&`;
-      if (statusFilter) url += `status=${encodeURIComponent(statusFilter)}&`;
+      let url = `/projects?page=${page}&limit=10&sortBy=${sortBy}&sortOrder=${sortOrder}`;
+      if (search) url += `&search=${encodeURIComponent(search)}`;
+      if (statusFilter) url += `&status=${encodeURIComponent(statusFilter)}`;
 
       const res = await api.get(url);
       if (res.data.success) {
         setProjects(res.data.data.projects);
+        setTotalPages(res.data.data.pagination.totalPages || 1);
       }
     } catch (err: any) {
       setError('Failed to load projects');
@@ -59,12 +67,19 @@ export const Projects = () => {
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await api.post('/projects', { name, description });
+      const payload: any = { name, description, status };
+      if (startDate) payload.startDate = new Date(startDate).toISOString();
+      if (endDate) payload.endDate = new Date(endDate).toISOString();
+
+      const res = await api.post('/projects', payload);
       if (res.data.success) {
         setProjects([res.data.data.project, ...projects]);
         setShowCreate(false);
         setName('');
         setDescription('');
+        setStatus('NOT_STARTED');
+        setStartDate(null);
+        setEndDate(null);
       }
     } catch (err) {
       alert('Failed to create project');
@@ -103,25 +118,13 @@ export const Projects = () => {
 
   return (
     <div className="layout">
-      <nav className="sidebar">
-        <div className="sidebar-header">
-          <h3>ProjectManager</h3>
-        </div>
-        <ul className="nav-links">
-          <li><Link to="/dashboard">Dashboard</Link></li>
-          <li><Link to="/projects" className="active">Projects</Link></li>
-        </ul>
-        <div className="sidebar-footer">
-          <p>{user?.fullName}</p>
-          <button onClick={logout} className="btn-secondary">Logout</button>
-        </div>
-      </nav>
+      <Sidebar />
 
       <main className="main-content">
         <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h1>Projects</h1>
-          <button onClick={() => setShowCreate(!showCreate)} className="btn-primary" style={{ width: 'auto', marginTop: 0 }}>
-            {showCreate ? 'Cancel' : 'New Project'}
+          <button onClick={() => setShowCreate(true)} className="btn-primary" style={{ width: 'auto', marginTop: 0 }}>
+            + New Project
           </button>
         </header>
 
@@ -135,7 +138,7 @@ export const Projects = () => {
           />
           <select 
             value={statusFilter} 
-            onChange={(e) => setStatusFilter(e.target.value)}
+            onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
             style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc' }}
           >
             <option value="">All Statuses</option>
@@ -144,24 +147,74 @@ export const Projects = () => {
             <option value="COMPLETED">Completed</option>
             <option value="ON_HOLD">On Hold</option>
           </select>
+          <select 
+            value={sortBy} 
+            onChange={(e) => { setSortBy(e.target.value); setPage(1); }}
+            style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc' }}
+          >
+            <option value="createdAt">Sort by Date</option>
+            <option value="name">Sort by Name</option>
+            <option value="status">Sort by Status</option>
+          </select>
+          <select 
+            value={sortOrder} 
+            onChange={(e) => { setSortOrder(e.target.value); setPage(1); }}
+            style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc' }}
+          >
+            <option value="desc">Descending</option>
+            <option value="asc">Ascending</option>
+          </select>
         </div>
 
-        {showCreate && (
-          <div className="stat-card" style={{ marginBottom: '2rem' }}>
-            <h3>Create New Project</h3>
-            <form onSubmit={handleCreate}>
-              <div className="form-group">
-                <label>Project Name</label>
-                <input type="text" value={name} onChange={e => setName(e.target.value)} required />
+        <Modal isOpen={showCreate} onClose={() => setShowCreate(false)} title="New Project">
+          <form onSubmit={handleCreate}>
+            <div className="form-group">
+              <label>Project Name <span className="required-star">*</span></label>
+              <input type="text" value={name} onChange={e => setName(e.target.value)} required />
+            </div>
+            <div className="form-group">
+              <label>Description</label>
+              <textarea 
+                value={description} 
+                onChange={e => setDescription(e.target.value)} 
+                rows={3}
+              />
+            </div>
+            <div className="form-group">
+              <label>Status</label>
+              <select value={status} onChange={e => setStatus(e.target.value)}>
+                <option value="NOT_STARTED">NOT STARTED</option>
+                <option value="IN_PROGRESS">IN PROGRESS</option>
+                <option value="COMPLETED">COMPLETED</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label>Start Date</label>
+              <div className="date-picker-wrapper">
+                <DatePicker 
+                  selected={startDate} 
+                  onChange={(date: Date | null) => setStartDate(date)} 
+                  dateFormat="dd-MM-yyyy"
+                  placeholderText="dd-mm-yyyy"
+                />
+                <Calendar className="date-picker-icon" size={18} />
               </div>
-              <div className="form-group">
-                <label>Description</label>
-                <input type="text" value={description} onChange={e => setDescription(e.target.value)} />
+            </div>
+            <div className="form-group">
+              <label>End Date</label>
+              <div className="date-picker-wrapper">
+                <DatePicker 
+                  selected={endDate} 
+                  onChange={(date: Date | null) => setEndDate(date)} 
+                  dateFormat="dd-MM-yyyy"
+                  placeholderText="dd-mm-yyyy"
+                />
+                <Calendar className="date-picker-icon" size={18} />
               </div>
-              <button type="submit" className="btn-primary">Create</button>
-            </form>
-          </div>
-        )}
+            </div>
+            <button type="submit" className="btn-primary" style={{ width: '100%', marginTop: '1rem', borderRadius: '8px' }}>Create</button>
+          </form>
+        </Modal>
 
         {loading && <p>Loading projects...</p>}
         {error && <p className="error-message">{error}</p>}
@@ -178,10 +231,9 @@ export const Projects = () => {
                       <input type="text" value={editName} onChange={e => setEditName(e.target.value)} required style={{width: '100%', marginBottom: '0.5rem', padding: '0.5rem'}} />
                       <input type="text" value={editDescription} onChange={e => setEditDescription(e.target.value)} style={{width: '100%', marginBottom: '0.5rem', padding: '0.5rem'}} />
                       <select value={editStatus} onChange={e => setEditStatus(e.target.value)} style={{width: '100%', marginBottom: '0.5rem', padding: '0.5rem'}}>
-                        <option value="PLANNING">Planning</option>
+                        <option value="NOT_STARTED">Not Started</option>
                         <option value="IN_PROGRESS">In Progress</option>
                         <option value="COMPLETED">Completed</option>
-                        <option value="ON_HOLD">On Hold</option>
                       </select>
                       <div style={{ display: 'flex', gap: '0.5rem' }}>
                         <button type="submit" className="btn-primary" style={{ marginTop: 0, flex: 1, padding: '0.5rem' }}>Save</button>
@@ -192,18 +244,42 @@ export const Projects = () => {
                     <>
                       <h3><Link to={`/projects/${project.id}`}>{project.name}</Link></h3>
                       <p>{project.description}</p>
-                      <span style={{ fontSize: '0.8rem', padding: '0.2rem 0.5rem', background: '#e0e0e0', borderRadius: '4px' }}>
+                      <span className="status-badge">
                         {project.status.replace('_', ' ')}
                       </span>
                       <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
-                        <button onClick={() => startEdit(project)} className="btn-secondary" style={{ padding: '0.2rem 0.5rem', fontSize: '0.8rem' }}>Edit</button>
-                        <button onClick={() => handleDelete(project.id)} className="btn-secondary" style={{ padding: '0.2rem 0.5rem', fontSize: '0.8rem', background: '#e74c3c', color: 'white', borderColor: '#e74c3c' }}>Delete</button>
+                        <button onClick={() => startEdit(project)} className="btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}>Edit</button>
+                        {user?.role === 'ADMIN' && (
+                          <button onClick={() => handleDelete(project.id)} className="btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem', background: 'rgba(239, 68, 68, 0.1)', color: 'var(--danger)', borderColor: 'rgba(239, 68, 68, 0.2)' }}>Delete</button>
+                        )}
                       </div>
                     </>
                   )}
                 </div>
               ))
             )}
+          </div>
+        )}
+
+        {!loading && !error && projects.length > 0 && (
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '2rem' }}>
+            <button 
+              onClick={() => setPage(p => Math.max(1, p - 1))} 
+              disabled={page === 1}
+              className="btn-secondary"
+            >
+              Previous
+            </button>
+            <span style={{ display: 'flex', alignItems: 'center' }}>
+              Page {page} of {totalPages}
+            </span>
+            <button 
+              onClick={() => setPage(p => Math.min(totalPages, p + 1))} 
+              disabled={page === totalPages || totalPages === 0}
+              className="btn-secondary"
+            >
+              Next
+            </button>
           </div>
         )}
       </main>

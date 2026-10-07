@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { Eye, EyeOff } from 'lucide-react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import './Auth.css';
@@ -7,6 +8,7 @@ import './Auth.css';
 export const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -20,7 +22,7 @@ export const Login = () => {
     try {
       const res = await api.post('/auth/login', { email, password });
       if (res.data.success) {
-        login(res.data.data.token, res.data.data.user);
+        login(res.data.data.token, res.data.data.refreshToken, res.data.data.user);
         navigate('/');
       }
     } catch (err: any) {
@@ -34,39 +36,32 @@ export const Login = () => {
     <div className="auth-container split-layout">
       <div className="auth-left">
         <div className="css-art-container">
-          <div className="art-circle-lg"></div>
-          <div className="art-circle-sm"></div>
-          <div className="art-card main-card">
-             <div className="art-line short"></div>
-             <div className="art-line long"></div>
-             <div className="art-line medium"></div>
+          <div className="art-circle-bg"></div>
+          <div className="art-dot-orange left"></div>
+          <div className="art-card back-card">
+            <div className="art-line short"></div>
+            <div className="art-line long"></div>
+            <div className="art-dot-orange right"></div>
           </div>
-          <div className="art-card side-card">
-             <div className="art-line medium"></div>
-             <div className="art-line short"></div>
+          <div className="art-card front-card">
+            <div className="art-line medium"></div>
+            <div className="art-line short"></div>
           </div>
-          <div className="art-floating-bubble bubble-1"></div>
-          <div className="art-floating-bubble bubble-2"></div>
         </div>
         <div className="auth-left-text">
           <h3>Empower your teamwork</h3>
           <p>Seamlessly organize projects, track tasks, and collaborate with your entire team in one unified platform.</p>
-          <div className="carousel-dots">
-            <span className="dot active"></span>
-            <span className="dot"></span>
-            <span className="dot"></span>
-          </div>
         </div>
       </div>
       
       <div className="auth-right">
         <div className="auth-box">
           <div className="auth-logo">PLANORA</div>
-          <h2>Welcome to Planora</h2>
+          <div className="auth-subtitle">Welcome to Planora</div>
           {error && <div className="error-message">{error}</div>}
           <form onSubmit={handleSubmit}>
             <div className="form-group">
-              <label>Email</label>
+              <label>Email <span className="required-star">*</span></label>
               <input 
                 type="email" 
                 value={email} 
@@ -75,15 +70,24 @@ export const Login = () => {
               />
             </div>
             <div className="form-group">
-              <label>Password</label>
-              <input 
-                type="password" 
-                value={password} 
-                onChange={(e) => setPassword(e.target.value)} 
-                required 
-              />
+              <label>Password <span className="required-star">*</span></label>
+              <div className="password-input-wrapper">
+                <input 
+                  type={showPassword ? "text" : "password"} 
+                  value={password} 
+                  onChange={(e) => setPassword(e.target.value)} 
+                  required 
+                />
+                <button 
+                  type="button"
+                  className="password-toggle-btn"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
             </div>
-            <button type="submit" disabled={loading} className="auth-button">
+            <button type="submit" disabled={loading} className="btn-primary" style={{ marginTop: '1.5rem', width: '100%', borderRadius: '25px', padding: '0.8rem' }}>
               {loading ? 'Logging in...' : 'Sign in'}
             </button>
           </form>

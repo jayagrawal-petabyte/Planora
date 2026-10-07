@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 export const getTasks = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userId = (req as any).user.id;
-    const { search, status, priority, projectId } = req.query;
+    const { search, status, priority, projectId, page, limit, sortBy, sortOrder } = req.query;
 
     const whereClause: any = {
       userId,
@@ -29,12 +29,38 @@ export const getTasks = async (req: Request, res: Response, next: NextFunction) 
       whereClause.priority = priority as Priority;
     }
 
-    const tasks = await prisma.task.findMany({
-      where: whereClause,
-      orderBy: { createdAt: 'desc' }
-    });
+    // Pagination
+    const pageNum = parseInt(page as string) || 1;
+    const limitNum = parseInt(limit as string) || 10;
+    const skip = (pageNum - 1) * limitNum;
 
-    res.json({ success: true, data: { tasks } });
+    // Sorting
+    const allowedSortFields = ['name', 'createdAt', 'status', 'priority', 'dueDate'];
+    const sortField = sortBy && typeof sortBy === 'string' && allowedSortFields.includes(sortBy) ? sortBy : 'createdAt';
+    const sortDir = sortOrder === 'asc' ? 'asc' : 'desc';
+
+    const [total, tasks] = await Promise.all([
+      prisma.task.count({ where: whereClause }),
+      prisma.task.findMany({
+        where: whereClause,
+        skip,
+        take: limitNum,
+        orderBy: { [sortField]: sortDir }
+      })
+    ]);
+
+    res.json({ 
+      success: true, 
+      data: { 
+        tasks,
+        pagination: {
+          total,
+          page: pageNum,
+          limit: limitNum,
+          totalPages: Math.ceil(total / limitNum)
+        }
+      } 
+    });
   } catch (error) {
     next(error);
   }

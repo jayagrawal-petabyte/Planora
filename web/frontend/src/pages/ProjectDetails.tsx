@@ -1,20 +1,15 @@
-import React, { useEffect, useState } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { Sidebar } from '../components/Sidebar';
 import './Dashboard.css';
 
-interface Task {
-  id: string;
-  name: string;
-  description: string;
-  priority: string;
-  status: string;
-}
+import type { Task } from '@planora/shared';
 
 export const ProjectDetails = () => {
   const { id } = useParams<{ id: string }>();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   const [project, setProject] = useState<any>(null);
@@ -25,6 +20,12 @@ export const ProjectDetails = () => {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [priorityFilter, setPriorityFilter] = useState('');
+
+  // Pagination & Sorting for Tasks
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [sortBy, setSortBy] = useState('createdAt');
+  const [sortOrder, setSortOrder] = useState('desc');
 
   // Task form
   const [taskName, setTaskName] = useState('');
@@ -40,11 +41,11 @@ export const ProjectDetails = () => {
 
   useEffect(() => {
     fetchProjectAndTasks();
-  }, [id, search, statusFilter, priorityFilter]);
+  }, [id, search, statusFilter, priorityFilter, page, sortBy, sortOrder]);
 
   const fetchProjectAndTasks = async () => {
     try {
-      let tasksUrl = `/tasks?projectId=${id}`;
+      let tasksUrl = `/tasks?projectId=${id}&page=${page}&limit=10&sortBy=${sortBy}&sortOrder=${sortOrder}`;
       if (search) tasksUrl += `&search=${encodeURIComponent(search)}`;
       if (statusFilter) tasksUrl += `&status=${encodeURIComponent(statusFilter)}`;
       if (priorityFilter) tasksUrl += `&priority=${encodeURIComponent(priorityFilter)}`;
@@ -55,6 +56,7 @@ export const ProjectDetails = () => {
       ]);
       setProject(projRes.data.data.project);
       setTasks(tasksRes.data.data.tasks);
+      setTotalPages(tasksRes.data.data.pagination?.totalPages || 1);
     } catch (err) {
       alert('Failed to load project details');
       navigate('/projects');
@@ -132,26 +134,14 @@ export const ProjectDetails = () => {
 
   return (
     <div className="layout">
-      <nav className="sidebar">
-        <div className="sidebar-header">
-          <h3>ProjectManager</h3>
-        </div>
-        <ul className="nav-links">
-          <li><Link to="/dashboard">Dashboard</Link></li>
-          <li><Link to="/projects" className="active">Projects</Link></li>
-        </ul>
-        <div className="sidebar-footer">
-          <p>{user?.fullName}</p>
-          <button onClick={logout} className="btn-secondary">Logout</button>
-        </div>
-      </nav>
+      <Sidebar />
 
       <main className="main-content">
         <header>
           <h1>{project.name}</h1>
           <p>{project.description}</p>
           <div style={{ marginTop: '1rem' }}>
-            <span style={{ padding: '0.3rem 0.6rem', background: '#3498db', color: 'white', borderRadius: '4px' }}>
+            <span className="status-badge">
               {project.status.replace('_', ' ')}
             </span>
           </div>
@@ -175,7 +165,7 @@ export const ProjectDetails = () => {
             />
             <select 
               value={statusFilter} 
-              onChange={(e) => setStatusFilter(e.target.value)}
+              onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
               style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc' }}
             >
               <option value="">All Statuses</option>
@@ -185,13 +175,32 @@ export const ProjectDetails = () => {
             </select>
             <select 
               value={priorityFilter} 
-              onChange={(e) => setPriorityFilter(e.target.value)}
+              onChange={(e) => { setPriorityFilter(e.target.value); setPage(1); }}
               style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc' }}
             >
               <option value="">All Priorities</option>
               <option value="LOW">Low</option>
               <option value="MEDIUM">Medium</option>
               <option value="HIGH">High</option>
+            </select>
+            <select 
+              value={sortBy} 
+              onChange={(e) => { setSortBy(e.target.value); setPage(1); }}
+              style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc' }}
+            >
+              <option value="createdAt">Sort by Date</option>
+              <option value="name">Sort by Name</option>
+              <option value="status">Sort by Status</option>
+              <option value="priority">Sort by Priority</option>
+              <option value="dueDate">Sort by Due Date</option>
+            </select>
+            <select 
+              value={sortOrder} 
+              onChange={(e) => { setSortOrder(e.target.value); setPage(1); }}
+              style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc' }}
+            >
+              <option value="desc">Descending</option>
+              <option value="asc">Ascending</option>
             </select>
           </div>
 
@@ -246,8 +255,8 @@ export const ProjectDetails = () => {
                         </h4>
                         <p style={{ margin: '0', fontSize: '0.9rem', color: '#7f8c8d' }}>{task.description}</p>
                         <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.5rem' }}>
-                          <span style={{ fontSize: '0.7rem', padding: '0.2rem 0.4rem', background: '#e0e0e0', borderRadius: '4px' }}>{task.status}</span>
-                          <span style={{ fontSize: '0.7rem', padding: '0.2rem 0.4rem', background: task.priority === 'HIGH' ? '#e74c3c' : task.priority === 'MEDIUM' ? '#f39c12' : '#3498db', color: 'white', borderRadius: '4px' }}>{task.priority}</span>
+                          <span className="status-badge">{task.status}</span>
+                          <span className="status-badge" style={{ background: task.priority === 'HIGH' ? 'var(--danger)' : task.priority === 'MEDIUM' ? 'var(--warning)' : 'var(--primary)' }}>{task.priority}</span>
                         </div>
                       </div>
                       <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -257,9 +266,11 @@ export const ProjectDetails = () => {
                         <button onClick={() => startEditTask(task)} className="btn-secondary" style={{ padding: '0.3rem 0.6rem' }}>
                           Edit
                         </button>
-                        <button onClick={() => handleDeleteTask(task.id)} className="btn-secondary" style={{ padding: '0.3rem 0.6rem', background: '#e74c3c', color: 'white', border: 'none' }}>
-                          Delete
-                        </button>
+                        {user?.role === 'ADMIN' && (
+                          <button onClick={() => handleDeleteTask(task.id)} className="btn-secondary" style={{ padding: '0.3rem 0.6rem', background: 'rgba(239, 68, 68, 0.1)', color: 'var(--danger)', borderColor: 'rgba(239, 68, 68, 0.2)' }}>
+                            Delete
+                          </button>
+                        )}
                       </div>
                     </>
                   )}
@@ -267,6 +278,28 @@ export const ProjectDetails = () => {
               ))
             )}
           </div>
+
+          {!loading && tasks.length > 0 && (
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '2rem' }}>
+              <button 
+                onClick={() => setPage(p => Math.max(1, p - 1))} 
+                disabled={page === 1}
+                className="btn-secondary"
+              >
+                Previous
+              </button>
+              <span style={{ display: 'flex', alignItems: 'center' }}>
+                Page {page} of {totalPages}
+              </span>
+              <button 
+                onClick={() => setPage(p => Math.min(totalPages, p + 1))} 
+                disabled={page === totalPages || totalPages === 0}
+                className="btn-secondary"
+              >
+                Next
+              </button>
+            </div>
+          )}
         </section>
       </main>
     </div>

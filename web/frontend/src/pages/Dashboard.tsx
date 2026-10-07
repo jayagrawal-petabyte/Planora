@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { Sidebar } from '../components/Sidebar';
 import './Dashboard.css';
 
 interface DashboardStats {
@@ -13,7 +14,7 @@ interface DashboardStats {
 }
 
 export const Dashboard = () => {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -37,19 +38,7 @@ export const Dashboard = () => {
 
   return (
     <div className="layout">
-      <nav className="sidebar">
-        <div className="sidebar-header">
-          <h3>ProjectManager</h3>
-        </div>
-        <ul className="nav-links">
-          <li><Link to="/dashboard" className="active">Dashboard</Link></li>
-          <li><Link to="/projects">Projects</Link></li>
-        </ul>
-        <div className="sidebar-footer">
-          <p>{user?.fullName}</p>
-          <button onClick={logout} className="btn-secondary">Logout</button>
-        </div>
-      </nav>
+      <Sidebar />
 
       <main className="main-content">
         <header>

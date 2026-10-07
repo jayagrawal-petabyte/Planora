@@ -1,15 +1,14 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl, TextInput, Alert, ActivityIndicator } from 'react-native';
 import api from '../services/api';
+import { useAuth } from '../context/AuthContext';
+import { Picker } from '@react-native-picker/picker';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
-interface Project {
-  id: string;
-  name: string;
-  description: string;
-  status: string;
-}
+import { Project } from '@planora/shared';
 
 export const ProjectsScreen = ({ navigation }: any) => {
+  const { user } = useAuth();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -18,24 +17,41 @@ export const ProjectsScreen = ({ navigation }: any) => {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
 
+  // Pagination & Sorting
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [sortBy, setSortBy] = useState('createdAt');
+  const [sortOrder, setSortOrder] = useState('desc');
+
   const [showCreate, setShowCreate] = useState(false);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [status, setStatus] = useState('NOT_STARTED');
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
+  const [showStartPicker, setShowStartPicker] = useState(false);
+  const [showEndPicker, setShowEndPicker] = useState(false);
   const [creating, setCreating] = useState(false);
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
   const [editDescription, setEditDescription] = useState('');
+  const [editStatus, setEditStatus] = useState('NOT_STARTED');
+  const [editStartDate, setEditStartDate] = useState<Date | null>(null);
+  const [editEndDate, setEditEndDate] = useState<Date | null>(null);
+  const [showEditStartPicker, setShowEditStartPicker] = useState(false);
+  const [showEditEndPicker, setShowEditEndPicker] = useState(false);
 
   const fetchProjects = async () => {
     try {
-      let url = '/projects?';
+      let url = `/projects?page=${page}&limit=10&sortBy=${sortBy}&sortOrder=${sortOrder}&`;
       if (search) url += `search=${encodeURIComponent(search)}&`;
       if (statusFilter) url += `status=${encodeURIComponent(statusFilter)}&`;
 
       const res = await api.get(url);
       if (res.data.success) {
         setProjects(res.data.data.projects);
+        setTotalPages(res.data.data.pagination.totalPages || 1);
         setError('');
       }
     } catch (err: any) {
@@ -48,12 +64,12 @@ export const ProjectsScreen = ({ navigation }: any) => {
 
   useEffect(() => {
     fetchProjects();
-  }, [search, statusFilter]);
+  }, [search, statusFilter, page, sortBy, sortOrder]);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     fetchProjects();
-  }, [search, statusFilter]);
+  }, [search, statusFilter, page, sortBy, sortOrder]);
 
   const handleCreate = async () => {
     if (!name.trim()) {
@@ -62,11 +78,18 @@ export const ProjectsScreen = ({ navigation }: any) => {
     }
     setCreating(true);
     try {
-      const res = await api.post('/projects', { name, description });
+      const payload: any = { name, description, status };
+      if (startDate) payload.startDate = startDate.toISOString();
+      if (endDate) payload.endDate = endDate.toISOString();
+
+      const res = await api.post('/projects', payload);
       if (res.data.success) {
         setProjects([res.data.data.project, ...projects]);
         setName('');
         setDescription('');
+        setStatus('NOT_STARTED');
+        setStartDate(null);
+        setEndDate(null);
         setShowCreate(false);
       }
     } catch (err: any) {
@@ -80,11 +103,18 @@ export const ProjectsScreen = ({ navigation }: any) => {
     setEditingId(project.id);
     setEditName(project.name);
     setEditDescription(project.description || '');
+    setEditStatus(project.status || 'NOT_STARTED');
+    setEditStartDate(project.startDate ? new Date(project.startDate) : null);
+    setEditEndDate(project.endDate ? new Date(project.endDate) : null);
   };
 
   const handleEditSubmit = async (id: string) => {
     try {
-      const res = await api.put(`/projects/${id}`, { name: editName, description: editDescription });
+      const payload: any = { name: editName, description: editDescription, status: editStatus };
+      if (editStartDate) payload.startDate = editStartDate.toISOString();
+      if (editEndDate) payload.endDate = editEndDate.toISOString();
+      
+      const res = await api.put(`/projects/${id}`, payload);
       if (res.data.success) {
         setProjects(projects.map(p => p.id === id ? res.data.data.project : p));
         setEditingId(null);
@@ -116,8 +146,47 @@ export const ProjectsScreen = ({ navigation }: any) => {
     if (editingId === item.id) {
       return (
         <View style={styles.card}>
-          <TextInput style={styles.input} value={editName} onChangeText={setEditName} />
-          <TextInput style={styles.input} value={editDescription} onChangeText={setEditDescription} />
+          <TextInput style={styles.input} value={editName} onChangeText={setEditName} placeholder="Project Name" />
+          <TextInput style={styles.input} value={editDescription} onChangeText={setEditDescription} placeholder="Description" />
+          <View style={{ borderWidth: 1, borderColor: '#e2e8f0', borderRadius: 8, marginBottom: 10, backgroundColor: '#f7f4ec' }}>
+            <Picker selectedValue={editStatus} onValueChange={setEditStatus}>
+              <Picker.Item label="Not Started" value="NOT_STARTED" />
+              <Picker.Item label="In Progress" value="IN_PROGRESS" />
+              <Picker.Item label="Completed" value="COMPLETED" />
+            </Picker>
+          </View>
+          <View style={{ flexDirection: 'row', gap: 10, marginBottom: 10 }}>
+            <TouchableOpacity style={[styles.input, { flex: 1, marginBottom: 0 }]} onPress={() => setShowEditStartPicker(true)}>
+              <Text style={{ color: editStartDate ? '#333' : '#999' }}>{editStartDate ? editStartDate.toLocaleDateString() : 'Start Date'}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.input, { flex: 1, marginBottom: 0 }]} onPress={() => setShowEditEndPicker(true)}>
+              <Text style={{ color: editEndDate ? '#333' : '#999' }}>{editEndDate ? editEndDate.toLocaleDateString() : 'End Date'}</Text>
+            </TouchableOpacity>
+          </View>
+          {showEditStartPicker && (
+            <DateTimePicker
+              value={editStartDate || new Date()}
+              mode="date"
+              display="default"
+              onValueChange={(event, selectedDate) => {
+                setShowEditStartPicker(false);
+                if (selectedDate) setEditStartDate(selectedDate);
+              }}
+              onDismiss={() => setShowEditStartPicker(false)}
+            />
+          )}
+          {showEditEndPicker && (
+            <DateTimePicker
+              value={editEndDate || new Date()}
+              mode="date"
+              display="default"
+              onValueChange={(event, selectedDate) => {
+                setShowEditEndPicker(false);
+                if (selectedDate) setEditEndDate(selectedDate);
+              }}
+              onDismiss={() => setShowEditEndPicker(false)}
+            />
+          )}
           <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
             <TouchableOpacity style={styles.btnPrimary} onPress={() => handleEditSubmit(item.id)}>
               <Text style={styles.btnText}>Save</Text>
@@ -135,7 +204,7 @@ export const ProjectsScreen = ({ navigation }: any) => {
         style={styles.card}
         onPress={() => navigation.navigate('ProjectDetails', { id: item.id, name: item.name })}
       >
-        <View style={styles.cardHeader}>
+        <View style={styles.card}>
           <Text style={styles.cardTitle}>{item.name}</Text>
           <View style={styles.badge}>
             <Text style={styles.badgeText}>{item.status.replace('_', ' ')}</Text>
@@ -143,13 +212,30 @@ export const ProjectsScreen = ({ navigation }: any) => {
         </View>
         <Text style={styles.cardDescription}>{item.description}</Text>
         
+        {(item.startDate || item.endDate) && (
+          <View style={{ flexDirection: 'row', gap: 10, marginTop: 5 }}>
+            {item.startDate && (
+              <View style={[styles.badge, { backgroundColor: '#64748b' }]}>
+                <Text style={styles.badgeText}>Start: {new Date(item.startDate).toLocaleDateString()}</Text>
+              </View>
+            )}
+            {item.endDate && (
+              <View style={[styles.badge, { backgroundColor: '#64748b' }]}>
+                <Text style={styles.badgeText}>End: {new Date(item.endDate).toLocaleDateString()}</Text>
+              </View>
+            )}
+          </View>
+        )}
+        
         <View style={{ flexDirection: 'row', justifyContent: 'flex-start', marginTop: 10, gap: 10 }}>
           <TouchableOpacity style={styles.btnAction} onPress={() => startEdit(item)}>
             <Text style={styles.btnActionText}>Edit</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.btnAction, styles.btnDelete]} onPress={() => handleDelete(item.id)}>
-            <Text style={styles.btnActionTextDelete}>Delete</Text>
-          </TouchableOpacity>
+          {user?.role === 'ADMIN' && (
+            <TouchableOpacity style={[styles.btnAction, styles.btnDelete]} onPress={() => handleDelete(item.id)}>
+              <Text style={styles.btnActionTextDelete}>Delete</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </TouchableOpacity>
     );
@@ -171,12 +257,19 @@ export const ProjectsScreen = ({ navigation }: any) => {
           value={search}
           onChangeText={setSearch}
         />
-        <View style={{ flexDirection: 'row', gap: 5 }}>
-          <TouchableOpacity onPress={() => setStatusFilter('')} style={[styles.filterBadge, statusFilter === '' && styles.filterBadgeActive]}>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 5, marginTop: 5 }}>
+          <TouchableOpacity onPress={() => { setStatusFilter(''); setPage(1); }} style={[styles.filterBadge, statusFilter === '' && styles.filterBadgeActive]}>
             <Text style={styles.filterBadgeText}>All</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => setStatusFilter('IN_PROGRESS')} style={[styles.filterBadge, statusFilter === 'IN_PROGRESS' && styles.filterBadgeActive]}>
+          <TouchableOpacity onPress={() => { setStatusFilter('IN_PROGRESS'); setPage(1); }} style={[styles.filterBadge, statusFilter === 'IN_PROGRESS' && styles.filterBadgeActive]}>
             <Text style={styles.filterBadgeText}>Active</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity onPress={() => { setSortBy(sortBy === 'createdAt' ? 'name' : 'createdAt'); setPage(1); }} style={styles.filterBadge}>
+            <Text style={styles.filterBadgeText}>Sort: {sortBy === 'createdAt' ? 'Date' : 'Name'}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => { setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc'); setPage(1); }} style={styles.filterBadge}>
+            <Text style={styles.filterBadgeText}>{sortOrder === 'desc' ? '↓ Desc' : '↑ Asc'}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -195,6 +288,45 @@ export const ProjectsScreen = ({ navigation }: any) => {
             value={description}
             onChangeText={setDescription}
           />
+          <View style={{ flexDirection: 'row', gap: 10, marginBottom: 10 }}>
+            <TouchableOpacity style={[styles.input, { flex: 1, marginBottom: 0 }]} onPress={() => setShowStartPicker(true)}>
+              <Text style={{ color: startDate ? '#333' : '#999' }}>{startDate ? startDate.toLocaleDateString() : 'Start Date'}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.input, { flex: 1, marginBottom: 0 }]} onPress={() => setShowEndPicker(true)}>
+              <Text style={{ color: endDate ? '#333' : '#999' }}>{endDate ? endDate.toLocaleDateString() : 'End Date'}</Text>
+            </TouchableOpacity>
+          </View>
+          {showStartPicker && (
+            <DateTimePicker
+              value={startDate || new Date()}
+              mode="date"
+              display="default"
+              onValueChange={(event, selectedDate) => {
+                setShowStartPicker(false);
+                if (selectedDate) setStartDate(selectedDate);
+              }}
+              onDismiss={() => setShowStartPicker(false)}
+            />
+          )}
+          {showEndPicker && (
+            <DateTimePicker
+              value={endDate || new Date()}
+              mode="date"
+              display="default"
+              onValueChange={(event, selectedDate) => {
+                setShowEndPicker(false);
+                if (selectedDate) setEndDate(selectedDate);
+              }}
+              onDismiss={() => setShowEndPicker(false)}
+            />
+          )}
+          <View style={{ borderWidth: 1, borderColor: '#e2e8f0', borderRadius: 8, marginBottom: 10, backgroundColor: '#f7f4ec' }}>
+            <Picker selectedValue={status} onValueChange={setStatus}>
+              <Picker.Item label="Not Started" value="NOT_STARTED" />
+              <Picker.Item label="In Progress" value="IN_PROGRESS" />
+              <Picker.Item label="Completed" value="COMPLETED" />
+            </Picker>
+          </View>
           <TouchableOpacity style={styles.submitBtn} onPress={handleCreate} disabled={creating}>
             {creating ? <ActivityIndicator color="white" /> : <Text style={styles.submitBtnText}>Create Project</Text>}
           </TouchableOpacity>
@@ -212,6 +344,17 @@ export const ProjectsScreen = ({ navigation }: any) => {
           contentContainerStyle={styles.list}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
           ListEmptyComponent={<Text style={styles.empty}>No projects found.</Text>}
+          ListFooterComponent={
+            <View style={{ flexDirection: 'row', justifyContent: 'center', padding: 20, gap: 15, alignItems: 'center' }}>
+              <TouchableOpacity onPress={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} style={[styles.btnAction, page === 1 && { opacity: 0.5 }]}>
+                <Text style={{color:'white'}}>Prev</Text>
+              </TouchableOpacity>
+              <Text>Page {page} of {totalPages}</Text>
+              <TouchableOpacity onPress={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages || totalPages === 0} style={[styles.btnAction, (page === totalPages || totalPages === 0) && { opacity: 0.5 }]}>
+                <Text style={{color:'white'}}>Next</Text>
+              </TouchableOpacity>
+            </View>
+          }
         />
       )}
     </View>
