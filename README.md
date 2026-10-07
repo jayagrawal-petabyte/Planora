@@ -12,7 +12,7 @@ A full-stack project management application with a unified backend serving both 
 - **Web Frontend**: React (Vite)
 - **Mobile App**: React Native (Expo)
 - **Backend**: Node.js with Express
-- **Database**: PostgreSQL with Prisma ORM
+- **Database**: PostgreSQL with Prisma ORM hosted on Supabase
 - **Shared Code**: Shared TypeScript types/Zod validators used seamlessly across frontend, mobile, and backend via an internal workspace package.
 
 ## Main Features
