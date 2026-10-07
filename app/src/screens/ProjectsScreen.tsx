@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl, TextInput, Alert, ActivityIndicator } from 'react-native';
 import api from '../services/api';
+import * as SecureStore from 'expo-secure-store';
 import { useAuth } from '../context/AuthContext';
 import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -53,9 +54,28 @@ export const ProjectsScreen = ({ navigation }: any) => {
         setProjects(res.data.data.projects);
         setTotalPages(res.data.data.pagination.totalPages || 1);
         setError('');
+        
+        if (page === 1 && !search && !statusFilter) {
+          await SecureStore.setItemAsync('offline_projects', JSON.stringify(res.data.data.projects));
+        }
       }
     } catch (err: any) {
-      setError(err.message || 'Failed to load projects');
+      if (err.message && err.message.includes('Network error')) {
+        try {
+          const cached = await SecureStore.getItemAsync('offline_projects');
+          if (cached) {
+            setProjects(JSON.parse(cached));
+            setError('Offline mode: Showing cached projects.');
+            setTotalPages(1);
+          } else {
+            setError(err.message);
+          }
+        } catch (e) {
+          setError(err.message || 'Failed to load projects');
+        }
+      } else {
+        setError(err.message || 'Failed to load projects');
+      }
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -204,10 +224,18 @@ export const ProjectsScreen = ({ navigation }: any) => {
         style={styles.card}
         onPress={() => navigation.navigate('ProjectDetails', { id: item.id, name: item.name })}
       >
-        <View style={styles.card}>
+        <View style={styles.cardHeader}>
           <Text style={styles.cardTitle}>{item.name}</Text>
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>{item.status.replace('_', ' ')}</Text>
+          <View style={{ flexDirection: 'row', gap: 5, alignItems: 'center' }}>
+            <TouchableOpacity style={styles.btnAction} onPress={() => startEdit(item)}>
+              <Text style={styles.btnActionText}>Edit</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.btnAction, styles.btnDelete]} onPress={() => handleDelete(item.id)}>
+              <Text style={styles.btnActionTextDelete}>Delete</Text>
+            </TouchableOpacity>
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>{item.status.replace('_', ' ')}</Text>
+            </View>
           </View>
         </View>
         <Text style={styles.cardDescription}>{item.description}</Text>
@@ -236,6 +264,9 @@ export const ProjectsScreen = ({ navigation }: any) => {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Projects</Text>
+        <TouchableOpacity style={styles.addBtn} onPress={() => setShowCreate(!showCreate)}>
+          <Text style={styles.addBtnText}>{showCreate ? 'Cancel' : '+ Add'}</Text>
+        </TouchableOpacity>
       </View>
 
       <View style={{ flexDirection: 'row', padding: 10, backgroundColor: 'white', borderBottomWidth: 1, borderColor: '#eee' }}>
@@ -249,8 +280,14 @@ export const ProjectsScreen = ({ navigation }: any) => {
           <TouchableOpacity onPress={() => { setStatusFilter(''); setPage(1); }} style={[styles.filterBadge, statusFilter === '' && styles.filterBadgeActive]}>
             <Text style={styles.filterBadgeText}>All</Text>
           </TouchableOpacity>
+          <TouchableOpacity onPress={() => { setStatusFilter('NOT_STARTED'); setPage(1); }} style={[styles.filterBadge, statusFilter === 'NOT_STARTED' && styles.filterBadgeActive]}>
+            <Text style={styles.filterBadgeText}>Not Started</Text>
+          </TouchableOpacity>
           <TouchableOpacity onPress={() => { setStatusFilter('IN_PROGRESS'); setPage(1); }} style={[styles.filterBadge, statusFilter === 'IN_PROGRESS' && styles.filterBadgeActive]}>
             <Text style={styles.filterBadgeText}>Active</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => { setStatusFilter('COMPLETED'); setPage(1); }} style={[styles.filterBadge, statusFilter === 'COMPLETED' && styles.filterBadgeActive]}>
+            <Text style={styles.filterBadgeText}>Completed</Text>
           </TouchableOpacity>
           
           <TouchableOpacity onPress={() => { setSortBy(sortBy === 'createdAt' ? 'name' : 'createdAt'); setPage(1); }} style={styles.filterBadge}>

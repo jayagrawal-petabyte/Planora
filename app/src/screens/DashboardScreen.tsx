@@ -4,6 +4,7 @@ import { PieChart } from 'react-native-chart-kit';
 import { useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
+import * as SecureStore from 'expo-secure-store';
 
 interface DashboardStats {
   totalProjects: number;
@@ -26,9 +27,24 @@ export const DashboardScreen = ({ navigation }: any) => {
       if (res.data.success) {
         setStats(res.data.data.stats);
         setError('');
+        await SecureStore.setItemAsync('offline_dashboard', JSON.stringify(res.data.data.stats));
       }
     } catch (err: any) {
-      setError(err.message || 'Failed to load dashboard statistics');
+      if (err.message && err.message.includes('Network error')) {
+        try {
+          const cached = await SecureStore.getItemAsync('offline_dashboard');
+          if (cached) {
+            setStats(JSON.parse(cached));
+            setError('Offline mode: Showing cached stats.');
+          } else {
+            setError(err.message);
+          }
+        } catch (e) {
+          setError(err.message || 'Failed to load dashboard statistics');
+        }
+      } else {
+        setError(err.message || 'Failed to load dashboard statistics');
+      }
     } finally {
       setLoading(false);
       setRefreshing(false);

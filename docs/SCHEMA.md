@@ -1,6 +1,6 @@
 # Database Schema (ER Diagram)
 
-The application utilizes a PostgreSQL database managed via Prisma ORM. Below is the simplified Entity-Relationship representation.
+The application utilizes a PostgreSQL database managed via Prisma ORM. Below is the Entity-Relationship representation of the final codebase.
 
 ## ER Diagram
 
@@ -9,6 +9,7 @@ erDiagram
     User ||--o{ Project : owns
     User ||--o{ Task : creates
     User ||--o{ RefreshToken : has
+    User ||--o{ AuditLog : performs
     Project ||--o{ Task : contains
 
     User {
@@ -54,6 +55,16 @@ erDiagram
         String projectId FK "Ref -> Project, Cascade"
         String userId FK "Ref -> User, Cascade"
     }
+
+    AuditLog {
+        String id PK "UUID"
+        String action
+        String entity
+        String entityId
+        String userId FK "Ref -> User"
+        Json details
+        DateTime createdAt
+    }
 ```
 
 ## Enums
@@ -62,6 +73,6 @@ erDiagram
 - **TaskStatus**: `PENDING`, `IN_PROGRESS`, `COMPLETED`
 - **Priority**: `LOW`, `MEDIUM`, `HIGH`
 
-## Security Notes
-- The `userId` on the `Project` and `Task` models is derived server-side from the authenticated user during creation and is validated against the `Project`'s owner. Frontend attempts to forge ownership are blocked.
+## Ownership Relationships
+- The `userId` on the `Project` and `Task` models is derived server-side from the authenticated user during creation and is validated against the `Project`'s owner. Users can never view, edit, or delete another user's projects or tasks.
 - Cascade deletion is enabled so deleting a `User` removes their `Project`s, `Task`s, and `RefreshToken`s, and deleting a `Project` removes its `Task`s.

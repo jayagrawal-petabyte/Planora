@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { PrismaClient, TaskStatus, Priority } from '@prisma/client';
 import { createTaskSchema, updateTaskSchema } from '../validators/taskValidator';
+import { logAudit } from '../services/auditService';
 
 const prisma = new PrismaClient();
 
@@ -104,6 +105,8 @@ export const createTask = async (req: Request, res: Response, next: NextFunction
       }
     });
 
+    await logAudit('CREATE_TASK', 'TASK', task.id, userId, task);
+
     res.status(201).json({ success: true, data: { task } });
   } catch (error) {
     next(error);
@@ -127,6 +130,8 @@ export const updateTask = async (req: Request, res: Response, next: NextFunction
       data: validatedData
     });
 
+    await logAudit('UPDATE_TASK', 'TASK', taskId, userId, validatedData);
+
     res.json({ success: true, data: { task: updatedTask } });
   } catch (error) {
     next(error);
@@ -147,6 +152,8 @@ export const deleteTask = async (req: Request, res: Response, next: NextFunction
     await prisma.task.delete({
       where: { id: taskId }
     });
+
+    await logAudit('DELETE_TASK', 'TASK', taskId, userId, { deletedAt: new Date() });
 
     res.json({ success: true, data: { message: "Task deleted successfully" } });
   } catch (error) {

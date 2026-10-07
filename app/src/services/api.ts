@@ -4,15 +4,17 @@ import * as SecureStore from 'expo-secure-store';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 
-let API_URL = 'http://192.168.1.13:5000/api'; // Physical IP address
+let API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://192.168.1.13:5000/api';
 
-if (Platform.OS === 'web') {
-  API_URL = 'http://localhost:5000/api';
-} else {
-  const debuggerHost = Constants.expoConfig?.hostUri;
-  if (debuggerHost) {
-    const localhost = debuggerHost.split(':')[0];
-    API_URL = `http://${localhost}:5000/api`;
+if (!process.env.EXPO_PUBLIC_API_URL) {
+  if (Platform.OS === 'web') {
+    API_URL = 'http://localhost:5000/api';
+  } else {
+    const debuggerHost = Constants.expoConfig?.hostUri;
+    if (debuggerHost) {
+      const localhost = debuggerHost.split(':')[0];
+      API_URL = `http://${localhost}:5000/api`;
+    }
   }
 }
 console.log("Connecting to API at:", API_URL);

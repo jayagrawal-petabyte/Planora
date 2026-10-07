@@ -237,22 +237,35 @@ export const ProjectDetailsScreen = ({ route }: any) => {
         </TouchableOpacity>
       </View>
 
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', padding: 10, backgroundColor: 'white', borderBottomWidth: 1, borderColor: '#eee', gap: 5 }}>
-        <TouchableOpacity onPress={() => { setStatusFilter(''); setPage(1); }} style={[styles.filterBadge, statusFilter === '' && styles.filterBadgeActive]}>
-          <Text style={styles.filterBadgeText}>All Status</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => { setStatusFilter('PENDING'); setPage(1); }} style={[styles.filterBadge, statusFilter === 'PENDING' && styles.filterBadgeActive]}>
-          <Text style={styles.filterBadgeText}>Pending</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => { setPriorityFilter(priorityFilter ? '' : 'HIGH'); setPage(1); }} style={[styles.filterBadge, priorityFilter === 'HIGH' && styles.filterBadgeActive]}>
-          <Text style={styles.filterBadgeText}>{priorityFilter === 'HIGH' ? 'High Only' : 'Priority'}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => { setSortBy(sortBy === 'createdAt' ? 'priority' : 'createdAt'); setPage(1); }} style={styles.filterBadge}>
-          <Text style={styles.filterBadgeText}>Sort: {sortBy === 'createdAt' ? 'Date' : 'Priority'}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => { setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc'); setPage(1); }} style={styles.filterBadge}>
-          <Text style={styles.filterBadgeText}>{sortOrder === 'desc' ? '↓ Desc' : '↑ Asc'}</Text>
-        </TouchableOpacity>
+      <View style={{ padding: 10, backgroundColor: 'white', borderBottomWidth: 1, borderColor: '#eee' }}>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 5, marginBottom: 5 }}>
+          <TouchableOpacity onPress={() => { setStatusFilter(''); setPage(1); }} style={[styles.filterBadge, statusFilter === '' && styles.filterBadgeActive]}>
+            <Text style={[styles.filterBadgeText, statusFilter === '' && {color: 'white'}]}>All Status</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => { setStatusFilter('PENDING'); setPage(1); }} style={[styles.filterBadge, statusFilter === 'PENDING' && styles.filterBadgeActive]}>
+            <Text style={[styles.filterBadgeText, statusFilter === 'PENDING' && {color: 'white'}]}>Pending</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => { setStatusFilter('IN_PROGRESS'); setPage(1); }} style={[styles.filterBadge, statusFilter === 'IN_PROGRESS' && styles.filterBadgeActive]}>
+            <Text style={[styles.filterBadgeText, statusFilter === 'IN_PROGRESS' && {color: 'white'}]}>In Progress</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => { setStatusFilter('COMPLETED'); setPage(1); }} style={[styles.filterBadge, statusFilter === 'COMPLETED' && styles.filterBadgeActive]}>
+            <Text style={[styles.filterBadgeText, statusFilter === 'COMPLETED' && {color: 'white'}]}>Completed</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 5 }}>
+          <TouchableOpacity onPress={() => { setPriorityFilter(''); setPage(1); }} style={[styles.filterBadge, priorityFilter === '' && styles.filterBadgeActive]}>
+            <Text style={[styles.filterBadgeText, priorityFilter === '' && {color: 'white'}]}>All Priority</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => { setPriorityFilter('LOW'); setPage(1); }} style={[styles.filterBadge, priorityFilter === 'LOW' && styles.filterBadgeActive]}>
+            <Text style={[styles.filterBadgeText, priorityFilter === 'LOW' && {color: 'white'}]}>Low</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => { setPriorityFilter('MEDIUM'); setPage(1); }} style={[styles.filterBadge, priorityFilter === 'MEDIUM' && styles.filterBadgeActive]}>
+            <Text style={[styles.filterBadgeText, priorityFilter === 'MEDIUM' && {color: 'white'}]}>Medium</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => { setPriorityFilter('HIGH'); setPage(1); }} style={[styles.filterBadge, priorityFilter === 'HIGH' && styles.filterBadgeActive]}>
+            <Text style={[styles.filterBadgeText, priorityFilter === 'HIGH' && {color: 'white'}]}>High</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {showForm && (

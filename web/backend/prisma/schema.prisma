@@ -25,6 +25,7 @@ model User {
   projects      Project[]
   tasks         Task[]
   refreshTokens RefreshToken[]
+  auditLogs     AuditLog[]
 }
 
 model RefreshToken {
@@ -85,4 +86,16 @@ enum Priority {
   LOW
   MEDIUM
   HIGH
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  action    String
+  entity    String
+  entityId  String
+  userId    String
+  details   Json?
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

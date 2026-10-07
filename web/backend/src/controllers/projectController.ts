@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { PrismaClient, ProjectStatus } from '@prisma/client';
 import { createProjectSchema, updateProjectSchema } from '../validators/projectValidator';
+import { logAudit } from '../services/auditService';
 
 const prisma = new PrismaClient();
 
@@ -89,6 +90,8 @@ export const createProject = async (req: Request, res: Response, next: NextFunct
       }
     });
 
+    await logAudit('CREATE_PROJECT', 'PROJECT', project.id, userId, project);
+
     res.status(201).json({ success: true, data: { project } });
   } catch (error) {
     next(error);
@@ -112,6 +115,8 @@ export const updateProject = async (req: Request, res: Response, next: NextFunct
       data: validatedData
     });
 
+    await logAudit('UPDATE_PROJECT', 'PROJECT', projectId, userId, validatedData);
+
     res.json({ success: true, data: { project: updatedProject } });
   } catch (error) {
     next(error);
@@ -132,6 +137,8 @@ export const deleteProject = async (req: Request, res: Response, next: NextFunct
     await prisma.project.delete({
       where: { id: projectId }
     });
+
+    await logAudit('DELETE_PROJECT', 'PROJECT', projectId, userId, { deletedAt: new Date() });
 
     res.json({ success: true, data: { message: "Project deleted successfully" } });
   } catch (error) {

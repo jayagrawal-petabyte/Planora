@@ -34,6 +34,10 @@ app.use(errorHandler);
 // Start cron jobs
 startCronJobs();
 
-app.listen(Number(PORT), '0.0.0.0', () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(Number(PORT), '0.0.0.0', () => {
+    console.log(`Server is running on port ${PORT}`);
+  });
+}
+
+export default app;
