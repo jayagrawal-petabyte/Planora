@@ -9,7 +9,21 @@ Planora is a full-stack project management application featuring a unified backe
 - **Backend API**: [https://planora-sux9.onrender.com/api](https://planora-sux9.onrender.com/api)
 - **Database**: Supabase PostgreSQL
 
-## 3. Run Locally
+## 3. Option 1: Docker (Recommended)
+The entire web stack (frontend and backend) can be run simultaneously using Docker Compose.
+
+1. Navigate to the `web` directory:
+   ```bash
+   cd web
+   ```
+2. Start the services:
+   ```bash
+   docker compose up --build
+   ```
+   - **Frontend**: http://localhost:5173
+   - **Backend API**: http://localhost:5000/api
+
+## 4. Option 2: Run Locally (Manual Setup)
 
 ### A. Backend (Node.js + Express)
 1. Navigate to the backend directory:
@@ -52,25 +66,11 @@ Planora is a full-stack project management application featuring a unified backe
    npm start
    ```
 
-## 4. Run Mobile Against Deployed Backend
+## 5. Run Mobile Against Deployed Backend
 To test the mobile app locally but connect it to the production backend instead of your local machine, simply update the `.env` in the `app` folder:
 ```env
 EXPO_PUBLIC_API_URL=https://planora-sux9.onrender.com/api
 ```
-
-## 5. Docker (Optional)
-The entire web stack (frontend and backend) can be run simultaneously using Docker Compose.
-
-1. Navigate to the `web` directory:
-   ```bash
-   cd web
-   ```
-2. Start the services:
-   ```bash
-   docker compose up --build
-   ```
-   - **Frontend**: http://localhost:5173
-   - **Backend API**: http://localhost:5000/api
 
 ## 6. Environment Variables
 

@@ -4,6 +4,7 @@ A full-stack project management application with a unified backend serving both 
 
 ## Deployment URLs
 - **Web App**: https://planora-bice.vercel.app/
+- **Mobile App**: [Download Android APK](https://expo.dev/accounts/jayagrawal/projects/planora/builds/eb07446c-1bb4-4066-b980-5a1b26ad432d)
 - **Backend API**: https://planora-sux9.onrender.com/api
 - **Database**: Supabase PostgreSQL
 
