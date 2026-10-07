@@ -22,10 +22,13 @@ A full-stack project management application with a unified backend serving both 
 - Unified error handling and comprehensive field validation
 
 ### Bonus Features Implemented
-- Unit / Integration Tests (Jest + RTL)
-- Audit Logs (Database tracking for mutation endpoints)
-- Offline Viewing of tasks and projects on mobile
-- Shared types and cross-validation between web, mobile, and backend
+- **Comprehensive Unit & Integration Tests**: Implemented using Jest and React Testing Library (RTL) for frontend components and backend logic.
+- **System Audit Logs**: Automated tracking of all mutations (create/update/delete) for tasks and projects, stored securely in a dedicated PostgreSQL `AuditLog` table.
+- **Mobile Offline Viewing**: Fallback caching implemented via `expo-secure-store` ensuring projects and tasks remain viewable on the mobile app even without an active internet connection.
+- **Full-Stack Type Safety (Shared Workspace)**: A dedicated `packages/shared` workspace containing Zod schemas and TypeScript interfaces guarantees 100% type parity across the database, backend APIs, web app, and mobile app.
+- **Docker Support**: Included complete `Dockerfile` configurations and a `docker-compose.yml` for instantly spinning up the web app and backend together.
+- **Pagination & Sorting**: Integrated cleanly across all list views (projects and tasks) for performance and usability.
+- **Refresh Tokens**: Built a secure JWT refresh mechanism to keep user sessions alive smoothly without forcing repeated logins.
 
 ## Repository Structure
 This is a standard Monorepo layout:
