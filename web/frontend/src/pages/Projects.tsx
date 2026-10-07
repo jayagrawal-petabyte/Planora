@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../services/api';
-import { useAuth } from '../context/AuthContext';
 import { Sidebar } from '../components/Sidebar';
 import { Modal } from '../components/Modal';
 import DatePicker from 'react-datepicker';
@@ -12,7 +11,6 @@ import './Dashboard.css'; // Reusing layout styles
 import type { Project } from '@planora/shared';
 
 export const Projects = () => {
-  const { user } = useAuth();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -40,6 +38,8 @@ export const Projects = () => {
   const [editName, setEditName] = useState('');
   const [editDescription, setEditDescription] = useState('');
   const [editStatus, setEditStatus] = useState('');
+  const [editStartDate, setEditStartDate] = useState<Date | null>(null);
+  const [editEndDate, setEditEndDate] = useState<Date | null>(null);
 
   useEffect(() => {
     fetchProjects();
@@ -66,6 +66,10 @@ export const Projects = () => {
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (startDate && endDate && startDate > endDate) {
+      alert('End date cannot be before start date');
+      return;
+    }
     try {
       const payload: any = { name, description, status };
       if (startDate) payload.startDate = new Date(startDate).toISOString();
@@ -101,12 +105,21 @@ export const Projects = () => {
     setEditName(project.name);
     setEditDescription(project.description || '');
     setEditStatus(project.status);
+    setEditStartDate(project.startDate ? new Date(project.startDate) : null);
+    setEditEndDate(project.endDate ? new Date(project.endDate) : null);
   };
 
   const handleEditSubmit = async (e: React.FormEvent, id: string) => {
     e.preventDefault();
+    if (editStartDate && editEndDate && editStartDate > editEndDate) {
+      alert('End date cannot be before start date');
+      return;
+    }
     try {
-      const res = await api.put(`/projects/${id}`, { name: editName, description: editDescription, status: editStatus });
+      const payload: any = { name: editName, description: editDescription, status: editStatus };
+      if (editStartDate) payload.startDate = new Date(editStartDate).toISOString();
+      if (editEndDate) payload.endDate = new Date(editEndDate).toISOString();
+      const res = await api.put(`/projects/${id}`, payload);
       if (res.data.success) {
         setProjects(projects.map(p => p.id === id ? res.data.data.project : p));
         setEditingId(null);
@@ -235,6 +248,26 @@ export const Projects = () => {
                         <option value="IN_PROGRESS">In Progress</option>
                         <option value="COMPLETED">Completed</option>
                       </select>
+                      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                        <div className="date-picker-wrapper" style={{ flex: 1 }}>
+                          <DatePicker 
+                            selected={editStartDate} 
+                            onChange={(date: Date | null) => setEditStartDate(date)} 
+                            dateFormat="dd-MM-yyyy"
+                            placeholderText="Start Date"
+                          />
+                          <Calendar className="date-picker-icon" size={18} />
+                        </div>
+                        <div className="date-picker-wrapper" style={{ flex: 1 }}>
+                          <DatePicker 
+                            selected={editEndDate} 
+                            onChange={(date: Date | null) => setEditEndDate(date)} 
+                            dateFormat="dd-MM-yyyy"
+                            placeholderText="End Date"
+                          />
+                          <Calendar className="date-picker-icon" size={18} />
+                        </div>
+                      </div>
                       <div style={{ display: 'flex', gap: '0.5rem' }}>
                         <button type="submit" className="btn-primary" style={{ marginTop: 0, flex: 1, padding: '0.5rem' }}>Save</button>
                         <button type="button" onClick={() => setEditingId(null)} className="btn-secondary" style={{ marginTop: 0, flex: 1, padding: '0.5rem' }}>Cancel</button>
@@ -244,14 +277,17 @@ export const Projects = () => {
                     <>
                       <h3><Link to={`/projects/${project.id}`}>{project.name}</Link></h3>
                       <p>{project.description}</p>
+                      <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '0.5rem' }}>
+                        Created: {new Date(project.createdAt).toLocaleDateString()}
+                        {project.startDate && ` | Start: ${new Date(project.startDate).toLocaleDateString()}`}
+                        {project.endDate && ` | End: ${new Date(project.endDate).toLocaleDateString()}`}
+                      </p>
                       <span className="status-badge">
                         {project.status.replace('_', ' ')}
                       </span>
                       <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
                         <button onClick={() => startEdit(project)} className="btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}>Edit</button>
-                        {user?.role === 'ADMIN' && (
-                          <button onClick={() => handleDelete(project.id)} className="btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem', background: 'rgba(239, 68, 68, 0.1)', color: 'var(--danger)', borderColor: 'rgba(239, 68, 68, 0.2)' }}>Delete</button>
-                        )}
+                        <button onClick={() => handleDelete(project.id)} className="btn-secondary" style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem', background: 'rgba(239, 68, 68, 0.1)', color: 'var(--danger)', borderColor: 'rgba(239, 68, 68, 0.2)' }}>Delete</button>
                       </div>
                     </>
                   )}

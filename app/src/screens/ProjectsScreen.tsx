@@ -227,16 +227,7 @@ export const ProjectsScreen = ({ navigation }: any) => {
           </View>
         )}
         
-        <View style={{ flexDirection: 'row', justifyContent: 'flex-start', marginTop: 10, gap: 10 }}>
-          <TouchableOpacity style={styles.btnAction} onPress={() => startEdit(item)}>
-            <Text style={styles.btnActionText}>Edit</Text>
-          </TouchableOpacity>
-          {user?.role === 'ADMIN' && (
-            <TouchableOpacity style={[styles.btnAction, styles.btnDelete]} onPress={() => handleDelete(item.id)}>
-              <Text style={styles.btnActionTextDelete}>Delete</Text>
-            </TouchableOpacity>
-          )}
-        </View>
+        <Text style={{ fontSize: 12, color: '#999', marginTop: 5 }}>Created: {new Date(item.createdAt).toLocaleDateString()}</Text>
       </TouchableOpacity>
     );
   };
@@ -245,9 +236,6 @@ export const ProjectsScreen = ({ navigation }: any) => {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Projects</Text>
-        <TouchableOpacity style={styles.addBtn} onPress={() => setShowCreate(!showCreate)}>
-          <Text style={styles.addBtnText}>{showCreate ? 'Cancel' : 'New'}</Text>
-        </TouchableOpacity>
       </View>
 
       <View style={{ flexDirection: 'row', padding: 10, backgroundColor: 'white', borderBottomWidth: 1, borderColor: '#eee' }}>

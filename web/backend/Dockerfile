@@ -1,7 +1,7 @@
-FROM node:18-alpine
+FROM node:24-bookworm-slim
 
-# Prisma's query engine requires OpenSSL on Alpine
-RUN apk add --no-cache openssl
+# Prisma's query engine requires OpenSSL
+RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 

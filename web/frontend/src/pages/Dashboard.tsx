@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -70,6 +71,44 @@ export const Dashboard = () => {
             <div className="stat-card">
               <h3>Pending Tasks</h3>
               <p className="stat-value">{stats.pendingTasks}</p>
+            </div>
+            
+            <div className="stat-card" style={{ gridColumn: '1 / -1', height: '350px', display: 'flex', flexDirection: 'column' }}>
+              <h3 style={{ marginBottom: '1rem', textAlign: 'center' }}>Task Statistics</h3>
+              <div style={{ flex: 1, minHeight: 0 }}>
+                {stats.totalTasks > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={[
+                          { name: 'Completed', value: stats.completedTasks },
+                          { name: 'Pending', value: stats.pendingTasks },
+                          { name: 'In Progress', value: Math.max(0, stats.totalTasks - stats.completedTasks - stats.pendingTasks) }
+                        ].filter(d => d.value > 0)}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={100}
+                        paddingAngle={5}
+                        dataKey="value"
+                      >
+                        {[
+                          { name: 'Completed', value: stats.completedTasks },
+                          { name: 'Pending', value: stats.pendingTasks },
+                          { name: 'In Progress', value: Math.max(0, stats.totalTasks - stats.completedTasks - stats.pendingTasks) }
+                        ].filter(d => d.value > 0).map((entry, index) => {
+                          const colors = { 'Completed': '#10b981', 'Pending': '#f59e0b', 'In Progress': '#3b82f6' };
+                          return <Cell key={`cell-${index}`} fill={colors[entry.name as keyof typeof colors]} />;
+                        })}
+                      </Pie>
+                      <Tooltip />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <p style={{ textAlign: 'center', color: '#999', marginTop: '2rem' }}>No tasks to display.</p>
+                )}
+              </div>
             </div>
           </div>
         )}

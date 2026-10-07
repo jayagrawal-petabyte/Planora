@@ -205,6 +205,7 @@ export const ProjectDetailsScreen = ({ route }: any) => {
             <Text style={styles.badgeText}>{item.priority}</Text>
           </View>
         </View>
+        <Text style={{ fontSize: 12, color: '#999', marginBottom: 5 }}>Created: {new Date(item.createdAt).toLocaleDateString()}</Text>
         <Text style={styles.cardDescription}>{item.description}</Text>
         
         <View style={styles.actions}>
@@ -214,11 +215,9 @@ export const ProjectDetailsScreen = ({ route }: any) => {
           <TouchableOpacity style={[styles.btn, {backgroundColor: '#eee'}]} onPress={() => startEdit(item)}>
             <Text style={[styles.btnActionText, {color: '#1a3626'}]}>Edit</Text>
           </TouchableOpacity>
-          {user?.role === 'ADMIN' && (
-            <TouchableOpacity style={[styles.btn, styles.btnDelete]} onPress={() => deleteTask(item.id)}>
-              <Text style={styles.btnActionText}>Delete</Text>
-            </TouchableOpacity>
-          )}
+          <TouchableOpacity style={[styles.btn, styles.btnDelete]} onPress={() => deleteTask(item.id)}>
+            <Text style={styles.btnActionText}>Delete</Text>
+          </TouchableOpacity>
         </View>
       </View>
     );

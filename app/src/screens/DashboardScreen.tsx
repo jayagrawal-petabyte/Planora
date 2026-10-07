@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, RefreshControl, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, RefreshControl, TouchableOpacity, Dimensions } from 'react-native';
+import { PieChart } from 'react-native-chart-kit';
 import { useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
@@ -89,6 +90,48 @@ export const DashboardScreen = ({ navigation }: any) => {
           <View style={styles.statCard}>
             <Text style={styles.statTitle}>Pending</Text>
             <Text style={styles.statValue}>{stats.pendingTasks}</Text>
+          </View>
+          <View style={[styles.statCard, { width: '100%', alignItems: 'center' }]}>
+            <Text style={styles.statTitle}>Task Statistics</Text>
+            {stats.totalTasks > 0 ? (
+              <PieChart
+                data={[
+                  {
+                    name: "Completed",
+                    value: stats.completedTasks,
+                    color: "#10b981",
+                    legendFontColor: "#7F7F7F",
+                    legendFontSize: 12
+                  },
+                  {
+                    name: "Pending",
+                    value: stats.pendingTasks,
+                    color: "#f59e0b",
+                    legendFontColor: "#7F7F7F",
+                    legendFontSize: 12
+                  },
+                  {
+                    name: "In Progress",
+                    value: Math.max(0, stats.totalTasks - stats.completedTasks - stats.pendingTasks),
+                    color: "#3b82f6",
+                    legendFontColor: "#7F7F7F",
+                    legendFontSize: 12
+                  }
+                ].filter(d => d.value > 0)}
+                width={Dimensions.get('window').width - 70}
+                height={200}
+                chartConfig={{
+                  color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+                }}
+                accessor={"value"}
+                backgroundColor={"transparent"}
+                paddingLeft={"0"}
+                center={[0, 0]}
+                absolute
+              />
+            ) : (
+              <Text style={{ color: '#999', marginTop: 10 }}>No tasks to display.</Text>
+            )}
           </View>
         </View>
       )}

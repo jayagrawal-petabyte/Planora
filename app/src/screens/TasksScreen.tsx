@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Alert, Modal, TextInput, ScrollView } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Alert, Modal, TextInput, ScrollView, RefreshControl } from 'react-native';
 import api from '../services/api';
 import type { Task, Project } from '@planora/shared';
 import { Picker } from '@react-native-picker/picker';
@@ -9,6 +9,7 @@ export const TasksScreen = ({ navigation }: any) => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [creating, setCreating] = useState(false);
 
@@ -21,23 +22,36 @@ export const TasksScreen = ({ navigation }: any) => {
   const [dueDate, setDueDate] = useState<Date | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
 
+  // Search & Filter
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [priorityFilter, setPriorityFilter] = useState('');
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [sortBy, setSortBy] = useState('createdAt');
+
   useEffect(() => {
     fetchTasksAndProjects();
-  }, []);
+  }, [search, statusFilter, priorityFilter, page, sortBy]);
 
   const fetchTasksAndProjects = async () => {
     try {
-      setLoading(true);
+      let tasksUrl = `/tasks?page=${page}&limit=10&sortBy=${sortBy}&sortOrder=desc`;
+      if (search) tasksUrl += `&search=${encodeURIComponent(search)}`;
+      if (statusFilter) tasksUrl += `&status=${encodeURIComponent(statusFilter)}`;
+      if (priorityFilter) tasksUrl += `&priority=${encodeURIComponent(priorityFilter)}`;
+
       const [tasksRes, projectsRes] = await Promise.all([
-        api.get('/tasks'),
+        api.get(tasksUrl),
         api.get('/projects?limit=100')
       ]);
       if (tasksRes.data.success) {
         setTasks(tasksRes.data.data.tasks);
+        setTotalPages(tasksRes.data.data.pagination?.totalPages || 1);
       }
       if (projectsRes.data.success) {
         setProjects(projectsRes.data.data.projects);
-        if (projectsRes.data.data.projects.length > 0) {
+        if (projectsRes.data.data.projects.length > 0 && !projectId) {
           setProjectId(projectsRes.data.data.projects[0].id);
         }
       }
@@ -46,8 +60,14 @@ export const TasksScreen = ({ navigation }: any) => {
       Alert.alert('Error', 'Failed to fetch tasks');
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    fetchTasksAndProjects();
+  }, [search, statusFilter, priorityFilter, page, sortBy]);
 
   const handleCreateTask = async () => {
     if (!name || !projectId) {
@@ -77,6 +97,34 @@ export const TasksScreen = ({ navigation }: any) => {
     }
   };
 
+  const toggleStatus = async (task: Task) => {
+    const newStatus = task.status === 'COMPLETED' ? 'PENDING' : 'COMPLETED';
+    try {
+      await api.put(`/tasks/${task.id}`, { status: newStatus });
+      setTasks(tasks.map(t => t.id === task.id ? { ...t, status: newStatus } : t));
+    } catch (err) {
+      Alert.alert('Error', 'Failed to update task status');
+    }
+  };
+
+  const deleteTask = async (taskId: string) => {
+    Alert.alert('Delete Task', 'Are you sure?', [
+      { text: 'Cancel', style: 'cancel' },
+      { 
+        text: 'Delete', 
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await api.delete(`/tasks/${taskId}`);
+            setTasks(tasks.filter(t => t.id !== taskId));
+          } catch (err) {
+            Alert.alert('Error', 'Failed to delete task');
+          }
+        }
+      }
+    ]);
+  };
+
   const getStatusColor = (s: string) => {
     switch (s) {
       case 'PENDING': return '#f59e0b';
@@ -97,8 +145,10 @@ export const TasksScreen = ({ navigation }: any) => {
 
   const renderItem = ({ item }: { item: Task }) => (
     <View style={styles.card}>
-      <Text style={styles.taskName}>{item.name}</Text>
+      <Text style={[styles.taskName, item.status === 'COMPLETED' && { textDecorationLine: 'line-through', color: '#95a5a6' }]}>{item.name}</Text>
+      <Text style={{ fontSize: 12, color: '#999', marginBottom: 5 }}>Created: {new Date(item.createdAt).toLocaleDateString()}</Text>
       {item.description ? <Text style={styles.taskDesc}>{item.description}</Text> : null}
+      
       <View style={styles.badgeContainer}>
         <View style={[styles.badge, { backgroundColor: getStatusColor(item.status) }]}>
           <Text style={styles.badgeText}>{item.status}</Text>
@@ -108,32 +158,68 @@ export const TasksScreen = ({ navigation }: any) => {
         </View>
         {item.dueDate && (
           <View style={[styles.badge, { backgroundColor: '#64748b' }]}>
-            <Text style={styles.badgeText}>{new Date(item.dueDate).toLocaleDateString()}</Text>
+            <Text style={styles.badgeText}>Due: {new Date(item.dueDate).toLocaleDateString()}</Text>
           </View>
         )}
+      </View>
+      
+      <View style={{ flexDirection: 'row', justifyContent: 'flex-start', marginTop: 15, gap: 10 }}>
+        <TouchableOpacity style={styles.btnAction} onPress={() => toggleStatus(item)}>
+          <Text style={styles.btnActionText}>{item.status === 'COMPLETED' ? 'Mark Pending' : 'Complete'}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.btnAction, styles.btnDelete]} onPress={() => deleteTask(item.id)}>
+          <Text style={styles.btnActionTextDelete}>Delete</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
 
-  if (loading) {
-    return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#1a3626" />
-      </View>
-    );
-  }
-
   return (
     <View style={styles.container}>
-      <FlatList
-        data={tasks}
-        renderItem={renderItem}
-        keyExtractor={item => item.id}
-        contentContainerStyle={styles.list}
-        ListEmptyComponent={
-          <Text style={styles.emptyText}>No tasks found.</Text>
-        }
-      />
+      <View style={{ flexDirection: 'row', padding: 10, backgroundColor: 'white', borderBottomWidth: 1, borderColor: '#eee' }}>
+        <TextInput
+          style={[styles.input, { flex: 1, marginBottom: 0, marginRight: 10 }]}
+          placeholder="Search Tasks..."
+          value={search}
+          onChangeText={setSearch}
+        />
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 5, marginTop: 5 }}>
+          <TouchableOpacity onPress={() => { setStatusFilter(statusFilter ? '' : 'PENDING'); setPage(1); }} style={[styles.filterBadge, statusFilter === 'PENDING' && styles.filterBadgeActive]}>
+            <Text style={styles.filterBadgeText}>{statusFilter === 'PENDING' ? 'Pending' : 'Status'}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => { setPriorityFilter(priorityFilter ? '' : 'HIGH'); setPage(1); }} style={[styles.filterBadge, priorityFilter === 'HIGH' && styles.filterBadgeActive]}>
+            <Text style={styles.filterBadgeText}>{priorityFilter === 'HIGH' ? 'High' : 'Priority'}</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {loading && !refreshing ? (
+        <View style={styles.centered}>
+          <ActivityIndicator size="large" color="#1a3626" />
+        </View>
+      ) : (
+        <FlatList
+          data={tasks}
+          renderItem={renderItem}
+          keyExtractor={item => item.id}
+          contentContainerStyle={styles.list}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+          ListEmptyComponent={
+            <Text style={styles.emptyText}>No tasks found.</Text>
+          }
+          ListFooterComponent={
+            <View style={{ flexDirection: 'row', justifyContent: 'center', padding: 20, gap: 15, alignItems: 'center' }}>
+              <TouchableOpacity onPress={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} style={[styles.btnAction, page === 1 && { opacity: 0.5 }]}>
+                <Text style={{color:'#1a3626', fontWeight: 'bold'}}>Prev</Text>
+              </TouchableOpacity>
+              <Text>Page {page} of {totalPages}</Text>
+              <TouchableOpacity onPress={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages || totalPages === 0} style={[styles.btnAction, (page === totalPages || totalPages === 0) && { opacity: 0.5 }]}>
+                <Text style={{color:'#1a3626', fontWeight: 'bold'}}>Next</Text>
+              </TouchableOpacity>
+            </View>
+          }
+        />
+      )}
       
       <TouchableOpacity 
         style={styles.fab}
@@ -266,7 +352,8 @@ const styles = StyleSheet.create({
   },
   badgeContainer: {
     flexDirection: 'row',
-    gap: 8
+    gap: 8,
+    marginTop: 5
   },
   badge: {
     paddingHorizontal: 8,
@@ -370,5 +457,25 @@ const styles = StyleSheet.create({
   createBtnText: {
     color: '#fff',
     fontWeight: '600'
+  },
+  filterBadge: { padding: 6, backgroundColor: '#eee', borderRadius: 4, justifyContent: 'center' },
+  filterBadgeActive: { backgroundColor: '#1a3626' },
+  filterBadgeText: { fontSize: 12, color: '#1a3626' },
+  btnAction: {
+    backgroundColor: '#eee',
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: 4,
+  },
+  btnDelete: {
+    backgroundColor: '#ffebee',
+  },
+  btnActionText: {
+    fontSize: 12,
+    color: '#1a3626',
+  },
+  btnActionTextDelete: {
+    fontSize: 12,
+    color: '#e74c3c',
   }
 });

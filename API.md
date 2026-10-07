@@ -77,7 +77,7 @@ All protected routes require an `Authorization: Bearer <token>` header.
 - **Error Responses**: `404 Not Found` if project doesn't exist or doesn't belong to user.
 
 ### `DELETE /api/projects/:id`
-- **Authentication**: Required + **ADMIN Role Required**
+- **Authentication**: Required
 - **Purpose**: Deletes a project. 
 - **Success Response**: `200 OK` with `{ success: true, data: null }`
 - **Error Responses**: `403 Forbidden` if user is not an ADMIN.
@@ -118,7 +118,7 @@ All protected routes require an `Authorization: Bearer <token>` header.
 - **Error Responses**: `404 Not Found` if task doesn't exist or doesn't belong to user.
 
 ### `DELETE /api/tasks/:id`
-- **Authentication**: Required + **ADMIN Role Required**
+- **Authentication**: Required
 - **Purpose**: Deletes a task.
 - **Success Response**: `200 OK` with `{ success: true, data: null }`
 - **Error Responses**: `403 Forbidden` if user is not an ADMIN.

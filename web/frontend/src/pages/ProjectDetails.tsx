@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../services/api';
-import { useAuth } from '../context/AuthContext';
 import { Sidebar } from '../components/Sidebar';
 import './Dashboard.css';
 
@@ -9,7 +8,6 @@ import type { Task } from '@planora/shared';
 
 export const ProjectDetails = () => {
   const { id } = useParams<{ id: string }>();
-  const { user } = useAuth();
   const navigate = useNavigate();
 
   const [project, setProject] = useState<any>(null);
@@ -140,6 +138,11 @@ export const ProjectDetails = () => {
         <header>
           <h1>{project.name}</h1>
           <p>{project.description}</p>
+          <div style={{ marginTop: '0.5rem', fontSize: '0.9rem', color: '#666' }}>
+            Created: {new Date(project.createdAt).toLocaleDateString()}
+            {project.startDate && ` | Start: ${new Date(project.startDate).toLocaleDateString()}`}
+            {project.endDate && ` | End: ${new Date(project.endDate).toLocaleDateString()}`}
+          </div>
           <div style={{ marginTop: '1rem' }}>
             <span className="status-badge">
               {project.status.replace('_', ' ')}
@@ -253,6 +256,7 @@ export const ProjectDetails = () => {
                         <h4 style={{ margin: '0 0 0.5rem 0', textDecoration: task.status === 'COMPLETED' ? 'line-through' : 'none' }}>
                           {task.name}
                         </h4>
+                        <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.8rem', color: '#999' }}>Created: {new Date(task.createdAt).toLocaleDateString()}</p>
                         <p style={{ margin: '0', fontSize: '0.9rem', color: '#7f8c8d' }}>{task.description}</p>
                         <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.5rem' }}>
                           <span className="status-badge">{task.status}</span>
@@ -266,11 +270,9 @@ export const ProjectDetails = () => {
                         <button onClick={() => startEditTask(task)} className="btn-secondary" style={{ padding: '0.3rem 0.6rem' }}>
                           Edit
                         </button>
-                        {user?.role === 'ADMIN' && (
-                          <button onClick={() => handleDeleteTask(task.id)} className="btn-secondary" style={{ padding: '0.3rem 0.6rem', background: 'rgba(239, 68, 68, 0.1)', color: 'var(--danger)', borderColor: 'rgba(239, 68, 68, 0.2)' }}>
-                            Delete
-                          </button>
-                        )}
+                        <button onClick={() => handleDeleteTask(task.id)} className="btn-secondary" style={{ padding: '0.3rem 0.6rem', background: 'rgba(239, 68, 68, 0.1)', color: 'var(--danger)', borderColor: 'rgba(239, 68, 68, 0.2)' }}>
+                          Delete
+                        </button>
                       </div>
                     </>
                   )}

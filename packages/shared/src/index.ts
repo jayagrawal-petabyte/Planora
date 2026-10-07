@@ -38,6 +38,7 @@ export interface Project {
   status: ProjectStatus;
   startDate?: Date | string;
   endDate?: Date | string;
+  createdAt: Date | string;
 }
 
 // Task
@@ -54,4 +55,5 @@ export interface Task {
   priority: TaskPriority;
   projectId: string;
   dueDate?: Date | string;
+  createdAt: Date | string;
 }
