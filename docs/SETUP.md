@@ -5,7 +5,7 @@ Planora is a full-stack project management application featuring a unified backe
 
 ## 2. Deployed Application
 - **Web App**: [https://planora-bice.vercel.app/](https://planora-bice.vercel.app/)
-- **Mobile App**: [Download Android APK (Internal Distribution)](https://expo.dev/artifacts/eas/planora-internal-build.apk) *(Demo placeholder link)*
+- **Mobile App**: [Download Android APK (Internal Distribution)](https://expo.dev/accounts/jayagrawal/projects/planora/builds/eb07446c-1bb4-4066-b980-5a1b26ad432d)
 - **Backend API**: [https://planora-sux9.onrender.com/api](https://planora-sux9.onrender.com/api)
 - **Database**: Supabase PostgreSQL
 
